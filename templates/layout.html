@@ -17,7 +17,6 @@
         <h2 class="subtitle">Live Standings for Sillico Battles v21.1</h2>
 
         <nav>
-            <a href="{{ url_for('scoring_view') }}" class="{{ 'active' if request.path == url_for('scoring_view') else '' }}">Points Table</a>
             {% if session.user_id %}
                 <a href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
                 <a href="{{ url_for('logout') }}">Logout</a>
