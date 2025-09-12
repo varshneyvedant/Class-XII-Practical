@@ -1,0 +1,28 @@
+{
+  "files_changed_count": 10,
+  "files_removed_list": [
+    "templates/super_admin_dashboard.html",
+    "templates/manage_users.html",
+    "templates/manage_events.html",
+    "templates/edit_event.html",
+    "templates/audit_log.html",
+    "templates/leaderboard_pdf.html",
+    "templates/podium.html",
+    "templates/scoring.html",
+    "static/js/confetti.js",
+    "build.sh"
+  ],
+  "files_added_list": [
+    "CBSE_audit.md",
+    "teacher_explanation.md",
+    "CBSE_mapping.md",
+    "project_report.md",
+    "python_sql_demo.py",
+    "db/schema.sql",
+    "examples/leaderboard.csv",
+    "cbse-adapt-summary.json"
+  ],
+  "branch_name": "cbse-adapt-2025-26/jules-simplify",
+  "PR_url": "N/A",
+  "summary_for_teacher": "Dear Teacher,\n\nPlease find attached the completed Computer Science project titled 'Interschool Competition Leaderboard'.\nThe project has been developed in Python using the Flask framework and demonstrates all required concepts from the syllabus, including database connectivity and file handling.\nThe source code and all required documentation as per the CBSE guidelines are included."
+}
