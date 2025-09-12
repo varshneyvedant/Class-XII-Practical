@@ -24,23 +24,26 @@
                     <th>Rank</th>
                     <th>School Name</th>
                     <th>Total Points</th>
-                    <th>1st Place</th>
-                    <th>2nd Place</th>
-                    <th>3rd Place</th>
+                    <th>1st</th>
+                    <th>2nd</th>
+                    <th>3rd</th>
+                    <th class="actions-column">Details</th>
                 </tr>
             </thead>
             <tbody>
                 {# This loop demonstrates iterating through data in a template. #}
                 {% for school in schools %}
-                {# The 'clickable-row' class is used by main.js to make the row a link. #}
                 {# We add a class for the top 3 ranks to apply special styling (gold, silver, bronze). #}
-                <tr class="clickable-row {% if school.rank <= 3 %}rank-{{ school.rank }}{% endif %}" data-href="{{ url_for('school_details', school_name=school.school) }}">
+                <tr class="{% if school.rank <= 3 %}rank-{{ school.rank }}{% endif %}">
                     <td data-label="Rank">{{ school.rank }} {% if school.rank <= 3 %}🏆{% endif %}</td>
                     <td data-label="School Name">{{ school.school }}</td>
                     <td data-label="Total Points">{{ school.total_points }}</td>
-                    <td data-label="1st Places">{{ school.first_places }}</td>
-                    <td data-label="2nd Places">{{ school.second_places }}</td>
-                    <td data-label="3rd Places">{{ school.third_places }}</td>
+                    <td data-label="1st">{{ school.first_places }}</td>
+                    <td data-label="2nd">{{ school.second_places }}</td>
+                    <td data-label="3rd">{{ school.third_places }}</td>
+                    <td data-label="Details" class="actions-column">
+                        <a href="{{ url_for('school_details', school_name=school.school) }}" class="button-link-details">View</a>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
