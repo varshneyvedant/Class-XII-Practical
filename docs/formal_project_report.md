@@ -74,25 +74,23 @@ I would also like to thank my parents and friends who supported me throughout th
 
 # **System Requirements**
 
-### **❖ Hardware Specifications:**
+### **❖ Minimum Hardware Specifications:**
 
-| S.NO | Name of Component | Specifications |
+| S.NO | Component | Specification |
 | :--- | :--- | :--- |
-| 1. | Processor | Pentium IV+ |
-| 2. | Ram | 512MB |
-| 3. | Hard Disk | 20GB |
-| 4. | Monitor | 15’’ Color monitor |
+| 1. | Processor | Dual Core @ 1.6GHz or equivalent |
+| 2. | RAM | 512 MB |
+| 3. | Hard Disk | 100 MB of free space |
 
 ### **❖ Software Specifications:**
 
-| S.NO | Name of Component | Specifications |
+| S.NO | Component | Specification |
 | :--- | :--- | :--- |
-| 1. | Operation System | Windows 10 or above, macOS, or Linux |
-| 2. | IDE | Any Python-supported IDE (e.g., VS Code, PyCharm, IDLE) |
-| 3. | Database | SQLite 3 (built-in with Python) |
-| 4. | Browser | Chrome, Firefox, etc. |
-| 5. | Front End | HTML, CSS |
-| 6. | Back End | Python (with Flask Framework) |
+| 1. | Operating System | Windows 10+, macOS 10.13+, or any modern Linux distribution |
+| 2. | Core Technology | Python 3.10 or newer |
+| 3. | Key Library | Flask Framework |
+| 4. | Database | SQLite 3 (which is included with Python and requires no separate installation) |
+| 5. | Client Software | A modern web browser (e.g., Google Chrome, Mozilla Firefox, Microsoft Edge) |
 
 ---
 
