@@ -59,8 +59,8 @@ Here is a simple breakdown of each important file and what to say about it.
 **Q7: What is a "session" in a web application? How did you use it?**
 *   **Answer:** "A session is a way for a web server to store information about a user across multiple requests. We used it for our admin login. When the admin successfully logs in, we store their `user_id` in the session. For any page that requires admin access, we first check if the `user_id` is present in the session. When they log out, we clear the session."
 
-**Q8: Can you explain the SQL query you used to calculate the leaderboard?**
-*   **Answer:** "To calculate the leaderboard, we first fetch all the results from the `Results` table and join it with the `Events` table to get the points for each place. Then, in Python, we use a dictionary to loop through these results and aggregate the total points and the number of 1st, 2nd, and 3rd place finishes for each school. Finally, we sort this data using a multi-level sort, first by total points, then by 1st places, and so on, to get the final ranks."
+**Q8: Can you explain how you calculate the leaderboard scores?**
+*   **Answer:** "We simplified the scoring system to make it easy to understand. The points are now fixed: 100 for 1st place, 75 for 2nd, and 50 for 3rd for all events. To calculate the leaderboard, our Python code fetches all the results from the `Results` table. It then uses a dictionary to loop through these results, adding the fixed points for each 1st, 2nd, or 3rd place finish to the school's total score. Finally, we sort this data by total points to get the final ranks."
 
 ## 3. In-Class Demo Script
 

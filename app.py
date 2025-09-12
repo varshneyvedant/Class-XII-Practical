@@ -39,10 +39,7 @@ def create_tables(conn):
         CREATE TABLE IF NOT EXISTS Events (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT UNIQUE NOT NULL,
-            results_entered INTEGER DEFAULT 0,
-            first_place_points INTEGER DEFAULT 100,
-            second_place_points INTEGER DEFAULT 75,
-            third_place_points INTEGER DEFAULT 50
+            results_entered INTEGER DEFAULT 0
         );
         CREATE TABLE IF NOT EXISTS Results (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -123,14 +120,13 @@ def get_school_standings(conn):
     The original query was complex (using a CTE), so it has been simplified
     to be more understandable for a student.
     """
-    # Step 1: Get all results and the points for each event.
-    results_query = """
-        SELECT
-            r.first_place_school, r.second_place_school, r.third_place_school,
-            e.first_place_points, e.second_place_points, e.third_place_points
-        FROM Results r
-        JOIN Events e ON r.event_id = e.id
-    """
+    # Define the fixed points for each place. This simplifies the logic significantly.
+    POINTS_FIRST = 100
+    POINTS_SECOND = 75
+    POINTS_THIRD = 50
+
+    # Step 1: Get all results. We no longer need to join with the Events table for points.
+    results_query = "SELECT first_place_school, second_place_school, third_place_school FROM Results"
     all_results = conn.execute(results_query).fetchall()
 
     # Step 2: Calculate points and placings for each school in Python.
@@ -142,21 +138,21 @@ def get_school_standings(conn):
         if result['first_place_school']:
             school = result['first_place_school']
             standings.setdefault(school, {'total_points': 0, 'first': 0, 'second': 0, 'third': 0})
-            standings[school]['total_points'] += result['first_place_points']
+            standings[school]['total_points'] += POINTS_FIRST
             standings[school]['first'] += 1
 
         # Award points for 2nd place
         if result['second_place_school']:
             school = result['second_place_school']
             standings.setdefault(school, {'total_points': 0, 'first': 0, 'second': 0, 'third': 0})
-            standings[school]['total_points'] += result['second_place_points']
+            standings[school]['total_points'] += POINTS_SECOND
             standings[school]['second'] += 1
 
         # Award points for 3rd place
         if result['third_place_school']:
             school = result['third_place_school']
             standings.setdefault(school, {'total_points': 0, 'first': 0, 'second': 0, 'third': 0})
-            standings[school]['total_points'] += result['third_place_points']
+            standings[school]['total_points'] += POINTS_THIRD
             standings[school]['third'] += 1
 
     # Step 3: Convert the dictionary to a list of dictionaries for sorting.
@@ -214,14 +210,6 @@ def standings_view():
     conn.close()
 
     return render_template('standings.html', schools=standings_with_ranks, last_updated=last_updated_time, all_results=all_results)
-
-@app.route('/scoring')
-def scoring_view():
-    conn = get_db_connection()
-    events_query = "SELECT name, first_place_points, second_place_points, third_place_points FROM Events ORDER BY name ASC"
-    all_events = conn.execute(events_query).fetchall()
-    conn.close()
-    return render_template('scoring.html', events=all_events)
 
 @app.route('/school/<school_name>')
 def school_details(school_name):
