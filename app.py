@@ -1,15 +1,9 @@
-import os
 import sqlite3
-import click
-from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
+from datetime import datetime
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, make_response
 from werkzeug.security import check_password_hash, generate_password_hash
-from dotenv import load_dotenv
-import pdfkit
-import tempfile
-
-load_dotenv()
+import io
+import csv
 
 app = Flask(__name__)
 app.secret_key = 'silico_battles_2025_winner'
@@ -23,167 +17,202 @@ def get_db_connection():
     conn.row_factory = sqlite3.Row
     return conn
 
-# makes the database tables and adds some data
-def init_db():
-    conn = get_db_connection()
-    with conn:
-        # Create tables if they don't exist
-        conn.executescript('''
-            CREATE TABLE IF NOT EXISTS Users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL,
-                role TEXT NOT NULL CHECK(role IN ('super_admin', 'admin'))
-            );
-            CREATE TABLE IF NOT EXISTS Events (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT UNIQUE NOT NULL,
-                results_entered INTEGER DEFAULT 0,
-                first_place_points INTEGER DEFAULT 100,
-                second_place_points INTEGER DEFAULT 75,
-                third_place_points INTEGER DEFAULT 50
-            );
-            CREATE TABLE IF NOT EXISTS Results (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                event_id INTEGER UNIQUE NOT NULL REFERENCES Events(id),
-                first_place_school TEXT,
-                second_place_school TEXT,
-                third_place_school TEXT,
-                submitted_at DATETIME NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS Schools (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT UNIQUE NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS AuditLog (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                username TEXT NOT NULL,
-                action TEXT NOT NULL,
-                event_name TEXT,
-                timestamp DATETIME NOT NULL,
-                FOREIGN KEY(user_id) REFERENCES Users(id)
-            );
-        ''')
+# -- DATABASE SETUP FUNCTIONS --
+# These functions are used to set up the database for the first time.
+# They are not part of the main web application, but are helper utilities.
 
-        # Seed the database with initial data
+def create_tables(conn):
+    """
+    Creates all the necessary tables for the application if they don't already exist.
+    This is a good example of executing SQL DDL (Data Definition Language) commands from Python.
+    """
+    conn.executescript('''
+        CREATE TABLE IF NOT EXISTS Users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            -- The 'role' column is simplified to just 'admin'.
+            -- In the original project, this was more complex ('super_admin', 'admin').
+            role TEXT NOT NULL DEFAULT 'admin'
+        );
+        CREATE TABLE IF NOT EXISTS Events (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL,
+            results_entered INTEGER DEFAULT 0,
+            first_place_points INTEGER DEFAULT 100,
+            second_place_points INTEGER DEFAULT 75,
+            third_place_points INTEGER DEFAULT 50
+        );
+        CREATE TABLE IF NOT EXISTS Results (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_id INTEGER UNIQUE NOT NULL REFERENCES Events(id),
+            first_place_school TEXT,
+            second_place_school TEXT,
+            third_place_school TEXT,
+            submitted_at DATETIME NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS Schools (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL
+        );
+        -- The AuditLog table is removed for simplicity.
+        -- It was used to track user actions, which is an advanced feature.
+    ''')
+    print("Tables created successfully.")
+
+def seed_data(conn):
+    """
+    Populates the database with some initial sample data from an SQL file.
+    This demonstrates reading from a file and executing SQL DML (Data Manipulation Language).
+    """
+    try:
         with open('seed.sql') as f:
             conn.executescript(f.read())
+        print("Database seeded with initial data.")
+    except FileNotFoundError:
+        print("'seed.sql' not found. Skipping seeding.")
+    except Exception as e:
+        print(f"An error occurred during seeding: {e}")
 
-    conn.close()
+def create_admin_user(conn, username, password):
+    """
+    Creates the first admin user.
+    This function demonstrates:
+    1. Hashing a password before storing it (a crucial security practice).
+    2. Inserting data into a table using a parameterized query to prevent SQL injection.
+    """
+    try:
+        # Hash the password for security. Never store plain text passwords!
+        # The 'scrypt' method is a modern, secure hashing algorithm.
+        hashed_password = generate_password_hash(password, method='scrypt')
+        conn.execute(
+            'INSERT INTO Users (username, password_hash, role) VALUES (?, ?, ?)',
+            (username, hashed_password, 'admin')
+        )
+        conn.commit()
+        print(f"Admin user '{username}' created successfully.")
+    except sqlite3.IntegrityError:
+        print(f"User '{username}' already exists. Skipping creation.")
+    except Exception as e:
+        print(f"An error occurred creating admin user: {e}")
 
-@app.cli.command("init-db")
-def init_db_command():
-    """Clears the existing data and creates new tables."""
-    init_db()
-    click.echo("Initialized the database.")
-
-@app.cli.command("create-user")
-@click.argument("username")
-@click.argument("password")
-@click.argument("role")
-def create_user_command(username, password, role):
-    """Creates a new user with the given username, password, and role."""
-    if role not in ['admin', 'super_admin']:
-        click.echo("Invalid role. Please choose 'admin' or 'super_admin'.")
-        return
-
+def setup_database():
+    """
+    A single function to set up the entire database.
+    It connects to the DB, creates tables, seeds data, and creates a default admin.
+    This is helpful for getting the project running quickly.
+    """
+    print("--- Setting up the database ---")
     conn = get_db_connection()
     try:
         with conn:
-            hashed_password = generate_password_hash(password, method='scrypt')
-            conn.execute(
-                'INSERT INTO Users (username, password_hash, role) VALUES (?, ?, ?)',
-                (username, hashed_password, role)
-            )
-        click.echo(f"User '{username}' created successfully as '{role}'.")
-    except sqlite3.IntegrityError:
-        click.echo(f"Error: Username '{username}' already exists.")
+            create_tables(conn)
+            seed_data(conn)
+            # For demonstration, a default admin user is created.
+            # In a real application, this should be handled more securely.
+            create_admin_user(conn, 'admin', 'password')
     finally:
         conn.close()
+        print("--- Database setup complete ---")
 
-@app.after_request
-def add_header(response):
-    """
-    Add headers to both force latest content and prevent caching.
-    """
-    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
-    response.headers['Pragma'] = 'no-cache'
-    response.headers['Expires'] = '0'
-    return response
-
-# gets the school scores
 def get_school_standings(conn):
-    query = """
-        WITH EventPoints AS (
-            SELECT
-                r.event_id,
-                e.first_place_points,
-                e.second_place_points,
-                e.third_place_points,
-                r.first_place_school,
-                r.second_place_school,
-                r.third_place_school
-            FROM Results r
-            JOIN Events e ON r.event_id = e.id
-        ),
-        AllPlacements AS (
-            SELECT first_place_school AS school, first_place_points AS points, 1 AS first_places, 0 AS second_places, 0 AS third_places FROM EventPoints UNION ALL
-            SELECT second_place_school AS school, second_place_points AS points, 0 AS first_places, 1 AS second_places, 0 AS third_places FROM EventPoints UNION ALL
-            SELECT third_place_school AS school, third_place_points AS points, 0 AS first_places, 0 AS second_places, 1 AS third_places FROM EventPoints
-        )
-        SELECT
-            school,
-            SUM(points) AS total_points,
-            SUM(first_places) AS first_places,
-            SUM(second_places) AS second_places,
-            SUM(third_places) AS third_places
-        FROM AllPlacements
-        WHERE school IS NOT NULL AND school != ''
-        GROUP BY school
-        ORDER BY total_points DESC, first_places DESC, second_places DESC, third_places DESC, school ASC;
     """
-    return conn.execute(query).fetchall()
+    Calculates the leaderboard standings for all schools.
+    This function demonstrates a practical use of SQL for data aggregation.
+    The original query was complex (using a CTE), so it has been simplified
+    to be more understandable for a student.
+    """
+    # Step 1: Get all results and the points for each event.
+    results_query = """
+        SELECT
+            r.first_place_school, r.second_place_school, r.third_place_school,
+            e.first_place_points, e.second_place_points, e.third_place_points
+        FROM Results r
+        JOIN Events e ON r.event_id = e.id
+    """
+    all_results = conn.execute(results_query).fetchall()
 
-# main page
+    # Step 2: Calculate points and placings for each school in Python.
+    # This approach is easier to explain than a very complex SQL query.
+    # It demonstrates the use of a dictionary (a key CBSE topic) to aggregate data.
+    standings = {}
+    for result in all_results:
+        # Award points for 1st place
+        if result['first_place_school']:
+            school = result['first_place_school']
+            standings.setdefault(school, {'total_points': 0, 'first': 0, 'second': 0, 'third': 0})
+            standings[school]['total_points'] += result['first_place_points']
+            standings[school]['first'] += 1
+
+        # Award points for 2nd place
+        if result['second_place_school']:
+            school = result['second_place_school']
+            standings.setdefault(school, {'total_points': 0, 'first': 0, 'second': 0, 'third': 0})
+            standings[school]['total_points'] += result['second_place_points']
+            standings[school]['second'] += 1
+
+        # Award points for 3rd place
+        if result['third_place_school']:
+            school = result['third_place_school']
+            standings.setdefault(school, {'total_points': 0, 'first': 0, 'second': 0, 'third': 0})
+            standings[school]['total_points'] += result['third_place_points']
+            standings[school]['third'] += 1
+
+    # Step 3: Convert the dictionary to a list of dictionaries for sorting.
+    standings_list = []
+    for school_name, data in standings.items():
+        standings_list.append({
+            'school': school_name,
+            'total_points': data['total_points'],
+            'first_places': data['first'],
+            'second_places': data['second'],
+            'third_places': data['third']
+        })
+
+    # Step 4: Sort the list to determine ranks.
+    # Sorting is done by total points, then by number of 1st places, etc.
+    # This is a good example of a multi-level sort.
+    standings_list.sort(key=lambda x: (x['total_points'], x['first_places'], x['second_places'], x['third_places']), reverse=True)
+
+    return standings_list
+
+# -- PUBLIC ROUTES --
+# These routes are accessible to anyone without logging in.
+
 @app.route('/')
 def standings_view():
+    """
+    Displays the main leaderboard page.
+    This is the homepage of the application.
+    """
     conn = get_db_connection()
     standings_raw = get_school_standings(conn)
 
-    standings = []
+    # Add ranks to the standings data. This logic handles ties correctly.
+    standings_with_ranks = []
     rank = 0
-    last_school_details = (-1, -1, -1, -1) # points, 1st, 2nd, 3rd
+    last_score = (-1, -1, -1, -1) # A tuple to track the last score for tie-breaking
     for i, school in enumerate(standings_raw):
-        current_school_details = (school['total_points'], school['first_places'], school['second_places'], school['third_places'])
-        if current_school_details != last_school_details:
-            rank += 1
-        standings.append(dict(school, rank=rank))
-        last_school_details = current_school_details
+        current_score = (school['total_points'], school['first_places'], school['second_places'], school['third_places'])
+        if current_score != last_score:
+            rank = i + 1
+        standings_with_ranks.append(dict(school, rank=rank))
+        last_score = current_score
 
-    # for showing when the scores were last updated
-    last_updated_query = "SELECT MAX(submitted_at) FROM Results"
-    last_update_row = conn.execute(last_updated_query).fetchone()
-    last_update = last_update_row[0] if last_update_row and last_update_row[0] else None
+    # Get the time of the last result submission.
+    # The timezone logic has been removed for simplicity.
+    last_updated_row = conn.execute("SELECT MAX(submitted_at) FROM Results").fetchone()
+    last_updated_time = last_updated_row[0] if last_updated_row and last_updated_row[0] else None
 
-    last_updated_time = None
-    if last_update:
-        # change from UTC to our time
-        last_updated_naive = datetime.fromisoformat(last_update)
-        last_updated_utc = last_updated_naive.replace(tzinfo=timezone.utc)
-        ist_tz = ZoneInfo("Asia/Kolkata")
-        last_updated_time = last_updated_utc.astimezone(ist_tz)
-
+    # Get all individual event results to display at the bottom of the page.
     all_results_query = """
         SELECT e.name, r.first_place_school, r.second_place_school, r.third_place_school
-        FROM Results r
-        JOIN Events e ON r.event_id = e.id
-        ORDER BY e.name ASC
+        FROM Results r JOIN Events e ON r.event_id = e.id ORDER BY e.name ASC
     """
     all_results = conn.execute(all_results_query).fetchall()
-
     conn.close()
-    return render_template('standings.html', schools=standings, last_updated=last_updated_time, all_results=all_results)
+
+    return render_template('standings.html', schools=standings_with_ranks, last_updated=last_updated_time, all_results=all_results)
 
 @app.route('/scoring')
 def scoring_view():
@@ -193,80 +222,27 @@ def scoring_view():
     conn.close()
     return render_template('scoring.html', events=all_events)
 
-# this sends data for the graph on the main page
-@app.route('/api/graph_data')
-def graph_data():
-    conn = get_db_connection()
-    query = """
-        SELECT r.submitted_at, e.name, r.first_place_school, r.second_place_school, r.third_place_school
-        FROM Results r
-        JOIN Events e ON r.event_id = e.id
-        ORDER BY r.submitted_at ASC
-    """
-    submissions = conn.execute(query).fetchall()
-
-    labels = [sub['name'] for sub in submissions]
-    datasets = {}
-    all_schools = set()
-
-    for sub in submissions:
-        all_schools.add(sub['first_place_school'])
-        all_schools.add(sub['second_place_school'])
-        all_schools.add(sub['third_place_school'])
-
-    for school in all_schools:
-        if not school: continue
-        datasets[school] = {
-            'label': school,
-            'data': [],
-            'borderColor': f'hsla({(hash(school) % 360)}, 90%, 70%, 1)',
-            'backgroundColor': f'hsla({(hash(school) % 360)}, 90%, 70%, 1)',
-            'tension': 0.1
-        }
-    
-    for i, sub in enumerate(submissions):
-        if i > 0:
-            for school in datasets:
-                datasets[school]['data'].append(datasets[school]['data'][i-1])
-        else:
-            for school in datasets:
-                datasets[school]['data'].append(0)
-
-        event_points = conn.execute('SELECT first_place_points, second_place_points, third_place_points FROM Events WHERE name = ?', (sub['name'],)).fetchone()
-
-        if sub['first_place_school'] in datasets:
-            datasets[sub['first_place_school']]['data'][i] += event_points['first_place_points']
-        if sub['second_place_school'] in datasets:
-            datasets[sub['second_place_school']]['data'][i] += event_points['second_place_points']
-        if sub['third_place_school'] in datasets:
-            datasets[sub['third_place_school']]['data'][i] += event_points['third_place_points']
-
-    conn.close()
-    final_datasets = list(datasets.values())
-    return jsonify({'labels': labels, 'datasets': final_datasets})
-
 @app.route('/school/<school_name>')
 def school_details(school_name):
+    """
+    Displays a page with detailed results for a single school.
+    This demonstrates fetching and displaying filtered data for a specific entity.
+    """
     conn = get_db_connection()
     
+    # Get the school's rank
     standings_raw = get_school_standings(conn)
-    
-    standings = []
-    rank = 0
-    last_school_details = (-1, -1, -1, -1)
+    rank = "N/A"
+    total_points = 0
     for i, school in enumerate(standings_raw):
-        current_school_details = (school['total_points'], school['first_places'], school['second_places'], school['third_places'])
-        if current_school_details != last_school_details:
-            rank += 1
-        standings.append(dict(school, rank=rank))
-        last_school_details = current_school_details
-
-    current_rank = "N/A"
-    for school in standings:
         if school['school'] == school_name:
-            current_rank = school['rank']
+            # The rank is the index + 1, but we need to handle ties.
+            # The `get_school_standings` function can be extended to return ranks if needed.
+            # For now, we'll just show the points.
+            total_points = school['total_points']
             break
-    
+
+    # Get all the positions the school has achieved.
     positions_query = """
         SELECT e.name AS event_name,
                CASE
@@ -280,27 +256,11 @@ def school_details(school_name):
     """
     positions = conn.execute(positions_query, (school_name, school_name, school_name, school_name, school_name, school_name)).fetchall()
     
-    total_points = 0
+    # Create a summary of 1st, 2nd, 3rd places
     summary = {'1st Place': 0, '2nd Place': 0, '3rd Place': 0}
-
-    # Get points for each event
-    event_points_query = """
-        SELECT e.name, e.first_place_points, e.second_place_points, e.third_place_points
-        FROM Events e
-    """
-    event_points_rows = conn.execute(event_points_query).fetchall()
-    event_points = {row['name']: row for row in event_points_rows}
-
-    for result in positions:
-        summary[result['position']] += 1
-        points = event_points.get(result['event_name'])
-        if points:
-            if result['position'] == '1st Place':
-                total_points += points['first_place_points']
-            elif result['position'] == '2nd Place':
-                total_points += points['second_place_points']
-            elif result['position'] == '3rd Place':
-                total_points += points['third_place_points']
+    for pos in positions:
+        if pos['position'] in summary:
+            summary[pos['position']] += 1
 
     conn.close()
     
@@ -309,11 +269,17 @@ def school_details(school_name):
                            results=positions,
                            summary=summary,
                            total_points=total_points,
-                           rank=current_rank)
+                           rank=rank) # Rank is simplified for now
 
-# login page for admin
+# -- ADMIN ROUTES --
+# These routes are for administrators to manage the application data.
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    """
+    Handles the admin login.
+    Demonstrates form handling (POST request) and session management.
+    """
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -321,571 +287,264 @@ def login():
         user = conn.execute('SELECT * FROM Users WHERE username = ?', (username,)).fetchone()
         conn.close()
 
+        # check_password_hash is a security function to compare the entered password
+        # with the stored hash. This is a very important security concept.
         if user and check_password_hash(user['password_hash'], password):
+            # Store user info in the session to keep them logged in
             session['user_id'] = user['id']
-            session['role'] = user['role']
-
-            if user['role'] == 'super_admin':
-                return redirect(url_for('super_admin_dashboard'))
-            elif user['role'] == 'admin':
-                return redirect(url_for('admin_dashboard'))
+            session['username'] = user['username']
+            flash('Login successful!', 'success')
+            return redirect(url_for('admin_dashboard'))
         else:
             flash("Wrong username or password.", "danger")
     return render_template('login.html')
 
-# admin dashboard to add/edit scores
-@app.route('/admin_dashboard', methods=['GET', 'POST'])
+@app.route('/logout')
+def logout():
+    """
+    Logs the user out by clearing the session.
+    """
+    session.clear()
+    flash('You have been logged out.', 'info')
+    return redirect(url_for('login'))
+
+def is_admin():
+    """
+    A helper function to check if a user is logged in.
+    """
+    return 'user_id' in session
+
+@app.route('/admin_dashboard')
 def admin_dashboard():
-    if 'user_id' not in session or session.get('role') not in ['admin', 'super_admin']:
-        flash("You are not authorized to access this page.", "danger")
+    """
+    The main dashboard for admins.
+    It shows forms to add/edit results and manage schools.
+    """
+    if not is_admin():
+        flash("You must be logged in to see this page.", "danger")
         return redirect(url_for('login'))
     
     conn = get_db_connection()
 
-    # when submitting new results
-    if request.method == 'POST':
-        event_id = request.form['event_id']
-        first = request.form['first_place']
-        second = request.form['second_place']
-        third = request.form['third_place']
-
-        # cant have same school in multiple places
-        if len(set([first, second, third])) < 3:
-            flash("A school cannot be in multiple places for one event.", "danger")
-            return redirect(url_for('admin_dashboard'))
-        
-        try:
-            with conn:
-                conn.execute('''
-                    INSERT INTO Results (event_id, first_place_school, second_place_school, third_place_school, submitted_at)
-                    VALUES (?, ?, ?, ?, ?)
-                ''', (event_id, first, second, third, datetime.now(timezone.utc)))
-                conn.execute('UPDATE Events SET results_entered = 1 WHERE id = ?', (event_id,))
-
-                # Audit log
-                user_id = session['user_id']
-                username = conn.execute('SELECT username FROM Users WHERE id = ?', (user_id,)).fetchone()['username']
-                event_name = conn.execute('SELECT name FROM Events WHERE id = ?', (event_id,)).fetchone()['name']
-                conn.execute(
-                    'INSERT INTO AuditLog (user_id, username, action, event_name, timestamp) VALUES (?, ?, ?, ?, ?)',
-                    (user_id, username, 'submit_result', event_name, datetime.now(timezone.utc))
-                )
-            flash('Results submitted!', 'success')
-        except sqlite3.IntegrityError:
-            flash("Results for this event have already been submitted.", "danger")
-
-        if session.get('role') == 'super_admin':
-            return redirect(url_for('super_admin_dashboard'))
-        return redirect(url_for('admin_dashboard'))
-
-    # show the page
+    # Get all events to populate the dropdowns
     all_events = conn.execute('SELECT e.id, e.name, e.results_entered, r.first_place_school, r.second_place_school, r.third_place_school FROM Events e LEFT JOIN Results r ON e.id = r.event_id ORDER BY e.name').fetchall()
 
-    schools_query = "SELECT name FROM Schools ORDER BY name ASC"
-    schools = [row['name'] for row in conn.execute(schools_query).fetchall()]
+    # Get all schools for dropdowns
+    schools = [row['name'] for row in conn.execute("SELECT name FROM Schools ORDER BY name ASC").fetchall()]
+
+    # Get all schools for the management list
+    all_schools_for_management = conn.execute('SELECT * FROM Schools ORDER BY name ASC').fetchall()
 
     conn.close()
+
+    pending_events = [e for e in all_events if not e['results_entered']]
+    submitted_events = [e for e in all_events if e['results_entered']]
+
+    return render_template('admin_dashboard.html',
+                           pending_events=pending_events,
+                           submitted_events=submitted_events,
+                           schools=schools,
+                           all_schools_for_management=all_schools_for_management)
+
+@app.route('/submit_result', methods=['POST'])
+def submit_result():
+    """
+    Handles the form submission for adding a new event result.
+    """
+    if not is_admin():
+        return redirect(url_for('login'))
+
+    event_id = request.form['event_id']
+    first = request.form['first_place']
+    second = request.form['second_place']
+    third = request.form['third_place']
+
+    # Basic validation: ensure a school isn't in multiple places.
+    # A list can be converted to a set to find unique items.
+    if len(set(filter(None, [first, second, third]))) < len(list(filter(None, [first, second, third]))):
+        flash("A school cannot be in multiple places for one event.", "danger")
+        return redirect(url_for('admin_dashboard'))
     
-    pending = [e for e in all_events if not e['results_entered']]
-    submitted = [e for e in all_events if e['results_entered']]
+    conn = get_db_connection()
+    try:
+        with conn:
+            # Using a parameterized query to prevent SQL injection.
+            conn.execute('''
+                INSERT INTO Results (event_id, first_place_school, second_place_school, third_place_school, submitted_at)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (event_id, first, second, third, datetime.now()))
+            conn.execute('UPDATE Events SET results_entered = 1 WHERE id = ?', (event_id,))
+        flash('Results submitted successfully!', 'success')
+    except sqlite3.IntegrityError:
+        flash("Results for this event have already been submitted. Please edit them instead.", "danger")
+    finally:
+        conn.close()
 
-    return render_template('admin_dashboard.html', pending_events=pending, submitted_events=submitted, schools=schools)
+    return redirect(url_for('admin_dashboard'))
 
-# edit existing results
-@app.route('/edit/<int:event_id>', methods=['GET', 'POST'])
+@app.route('/edit_result/<int:event_id>', methods=['GET', 'POST'])
 def edit_result(event_id):
-    if 'user_id' not in session or session.get('role') not in ['admin', 'super_admin']:
-        flash("You are not authorized to access this page.", "danger")
+    """
+    Handles editing an existing result.
+    Shows a form on GET and processes the update on POST.
+    """
+    if not is_admin():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-
     if request.method == 'POST':
         first = request.form['first_place']
         second = request.form['second_place']
         third = request.form['third_place']
 
-        if len(set([first, second, third])) < 3:
+        if len(set(filter(None, [first, second, third]))) < len(list(filter(None, [first, second, third]))):
             flash("A school cannot be in multiple places for one event.", "danger")
-            # if theres an error, we have to load the data again
-            result = conn.execute('SELECT * FROM Results WHERE event_id = ?', (event_id,)).fetchone()
-            event = conn.execute('SELECT * FROM Events WHERE id = ?', (event_id,)).fetchone()
-            schools_query = "SELECT name FROM Schools ORDER BY name ASC"
-            schools = [row['name'] for row in conn.execute(schools_query).fetchall()]
-            conn.close()
-            return render_template('edit_result.html', result=result, event=event, schools=schools)
+        else:
+            with conn:
+                conn.execute('''
+                    UPDATE Results SET first_place_school = ?, second_place_school = ?, third_place_school = ?, submitted_at = ?
+                    WHERE event_id = ?
+                ''', (first, second, third, datetime.now(), event_id))
+            flash('Results updated successfully!', 'success')
         
-        conn.execute('''
-            UPDATE Results
-            SET first_place_school = ?, second_place_school = ?, third_place_school = ?, submitted_at = ?
-            WHERE event_id = ?
-        ''', (first, second, third, datetime.now(timezone.utc), event_id))
-
-        # Audit log
-        user_id = session['user_id']
-        username = conn.execute('SELECT username FROM Users WHERE id = ?', (user_id,)).fetchone()['username']
-        event_name = conn.execute('SELECT name FROM Events WHERE id = ?', (event_id,)).fetchone()['name']
-        conn.execute(
-            'INSERT INTO AuditLog (user_id, username, action, event_name, timestamp) VALUES (?, ?, ?, ?, ?)',
-            (user_id, username, 'edit_result', event_name, datetime.now(timezone.utc))
-        )
-
-        conn.commit()
         conn.close()
-        flash('Results updated!', 'success')
-
-        if session.get('role') == 'super_admin':
-            return redirect(url_for('super_admin_dashboard'))
         return redirect(url_for('admin_dashboard'))
 
-    # load the page
+    # For GET request, show the edit form with existing data
     result = conn.execute('SELECT * FROM Results WHERE event_id = ?', (event_id,)).fetchone()
-
-    if result is None:
+    if not result:
+        flash('No results found for this event.', 'warning')
         conn.close()
-        flash('No results for this event.', 'warning')
         return redirect(url_for('admin_dashboard'))
 
     event = conn.execute('SELECT * FROM Events WHERE id = ?', (event_id,)).fetchone()
-    schools_query = "SELECT name FROM Schools ORDER BY name ASC"
-    schools = [row['name'] for row in conn.execute(schools_query).fetchall()]
+    schools = [row['name'] for row in conn.execute("SELECT name FROM Schools ORDER BY name ASC").fetchall()]
     conn.close()
     
     return render_template('edit_result.html', result=result, event=event, schools=schools)
 
-@app.route('/api/predictive_analytics')
-def predictive_analytics():
-    if 'user_id' not in session:
-        return jsonify({'error': 'Unauthorized'}), 401
+@app.route('/add_school', methods=['POST'])
+def add_school():
+    """
+    Handles adding a new school.
+    """
+    if not is_admin():
+        return redirect(url_for('login'))
+
+    school_name = request.form['name'].strip()
+    if school_name:
+        conn = get_db_connection()
+        try:
+            with conn:
+                conn.execute('INSERT INTO Schools (name) VALUES (?)', (school_name,))
+            flash(f"School '{school_name}' added!", "success")
+        except sqlite3.IntegrityError:
+            flash(f"School '{school_name}' already exists.", "danger")
+        finally:
+            conn.close()
+    else:
+        flash("School name cannot be empty.", "danger")
+
+    return redirect(url_for('admin_dashboard'))
+
+@app.route('/delete_school/<int:school_id>', methods=['POST'])
+def delete_school(school_id):
+    """
+    Handles deleting a school.
+    Important: It checks if the school has results before deleting.
+    This demonstrates the concept of foreign key constraints and data integrity.
+    """
+    if not is_admin():
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    school_name = conn.execute('SELECT name FROM Schools WHERE id = ?', (school_id,)).fetchone()['name']
+
+    # Check if school has participated in any events
+    results_check = conn.execute('''
+        SELECT 1 FROM Results WHERE ? IN (first_place_school, second_place_school, third_place_school)
+    ''', (school_name,)).fetchone()
+
+    if results_check:
+        flash(f"Cannot delete '{school_name}' as it has existing results.", "danger")
+    else:
+        with conn:
+            conn.execute('DELETE FROM Schools WHERE id = ?', (school_id,))
+        flash(f"School '{school_name}' deleted.", "success")
+
+    conn.close()
+    return redirect(url_for('admin_dashboard'))
+
+# -- FILE HANDLING DEMO --
+# This route demonstrates exporting data to a CSV file, a key CBSE topic.
+@app.route('/export_leaderboard_csv')
+def export_leaderboard_csv():
+    """
+    Generates a CSV file of the current leaderboard standings.
+    This function demonstrates:
+    1. Fetching data from the database.
+    2. Using the `io` and `csv` standard libraries.
+    3. Creating a file in memory.
+    4. Sending the file to the user as a download.
+    """
+    if not is_admin():
+        return redirect(url_for('login'))
 
     conn = get_db_connection()
     standings = get_school_standings(conn)
-
-    total_events = conn.execute('SELECT COUNT(id) FROM Events').fetchone()[0]
-
-    school_participation = {}
-    for school_row in standings:
-        school_name = school_row['school']
-        count = conn.execute("SELECT COUNT(DISTINCT event_id) FROM (SELECT event_id FROM Results WHERE first_place_school = ? OR second_place_school = ? OR third_place_school = ?)", (school_name, school_name, school_name)).fetchone()[0]
-        school_participation[school_name] = count
-
     conn.close()
 
-    projected_standings = []
-    for school_row in standings:
-        school_name = school_row['school']
-        current_points = school_row['total_points']
-        events_participated = school_participation.get(school_name, 1) # Avoid division by zero
+    # Use the `io` module to create an in-memory text file.
+    # This avoids having to save the file to disk on the server.
+    string_io = io.StringIO()
 
-        avg_points_per_event = current_points / events_participated
+    # Use the `csv` module to write to the file.
+    # This is the standard way to handle CSV data in Python.
+    writer = csv.writer(string_io)
 
-        remaining_events = total_events - events_participated
-        projected_points = current_points + (avg_points_per_event * remaining_events)
+    # Write the header row
+    writer.writerow(['Rank', 'School', 'Total Points', '1st Places', '2nd Places', '3rd Places'])
 
-        projected_standings.append({
-            'school': school_name,
-            'total_points': round(projected_points)
-        })
-
-    projected_standings.sort(key=lambda x: x['total_points'], reverse=True)
-
-    return jsonify(projected_standings[:5])
-
-
-@app.route('/what_if_scenario', methods=['POST'])
-def what_if_scenario():
-    if 'user_id' not in session or session.get('role') not in ['admin', 'super_admin']:
-        return jsonify({'error': 'Unauthorized'}), 401
-
-    data = request.get_json()
-    first = data.get('first_place')
-    second = data.get('second_place')
-    third = data.get('third_place')
-
-    conn = get_db_connection()
-    current_standings = get_school_standings(conn)
-    conn.close()
-
-    standings_dict = {row['school']: {'total_points': row['total_points'], 'original_points': row['total_points']} for row in current_standings}
-
-    avg_points = conn.execute('''
-        SELECT AVG(first_place_points), AVG(second_place_points), AVG(third_place_points)
-        FROM Events
-    ''').fetchone()
-
-    avg_first = avg_points[0] if avg_points[0] is not None else 100
-    avg_second = avg_points[1] if avg_points[1] is not None else 75
-    avg_third = avg_points[2] if avg_points[2] is not None else 50
-
-
-    if first and first in standings_dict:
-        standings_dict[first]['total_points'] += avg_first
-    elif first:
-        standings_dict[first] = {'total_points': avg_first, 'original_points': 0}
-
-    if second and second in standings_dict:
-        standings_dict[second]['total_points'] += avg_second
-    elif second:
-        standings_dict[second] = {'total_points': avg_second, 'original_points': 0}
-
-    if third and third in standings_dict:
-        standings_dict[third]['total_points'] += avg_third
-    elif third:
-        standings_dict[third] = {'total_points': avg_third, 'original_points': 0}
-
-    new_standings = sorted(
-        [{'school': k, **v} for k, v in standings_dict.items()],
-        key=lambda x: x['total_points'],
-        reverse=True
-    )
-
-    return jsonify(new_standings)
-
-@app.route('/download_leaderboard_pdf')
-def download_leaderboard_pdf():
-    conn = get_db_connection()
-    standings_raw = get_school_standings(conn)
-    conn.close()
-
-    standings = []
+    # Write the data rows
     rank = 0
-    last_school_details = (-1, -1, -1, -1)
-    for i, school in enumerate(standings_raw):
-        current_school_details = (school['total_points'], school['first_places'], school['second_places'], school['third_places'])
-        if current_school_details != last_school_details:
-            rank += 1
-        standings.append(dict(school, rank=rank))
-        last_school_details = current_school_details
+    last_score = (-1, -1, -1, -1)
+    for i, school in enumerate(standings):
+        current_score = (school['total_points'], school['first_places'], school['second_places'], school['third_places'])
+        if current_score != last_score:
+            rank = i + 1
+        writer.writerow([
+            rank,
+            school['school'],
+            school['total_points'],
+            school['first_places'],
+            school['second_places'],
+            school['third_places']
+        ])
+        last_score = current_score
 
-    # Get current time for the timestamp
-    now = datetime.now(ZoneInfo("Asia/Kolkata"))
-    timestamp = now.strftime('%B %d, %Y at %I:%M %p')
+    # Prepare the response to send the file to the user.
+    mem = io.BytesIO()
+    mem.write(string_io.getvalue().encode('utf-8'))
+    mem.seek(0)
+    string_io.close()
 
-    # Render the PDF-specific template
-    rendered_html = render_template('leaderboard_pdf.html', schools=standings, timestamp=timestamp)
-
-    # Generate PDF from the rendered HTML
-    pdf = pdfkit.from_string(rendered_html, False)
-
-    # Create a response with the PDF
-    response = make_response(pdf)
-    response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = 'attachment; filename=leaderboard.pdf'
+    response = make_response(mem.getvalue())
+    response.headers['Content-Type'] = 'text/csv'
+    response.headers['Content-Disposition'] = 'attachment; filename=leaderboard.csv'
 
     return response
 
-@app.route('/admin/audit_log')
-def audit_log():
-    if 'user_id' not in session or session.get('role') != 'super_admin':
-        flash("You are not authorized to access this page.", "danger")
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-    logs_from_db = conn.execute('SELECT * FROM AuditLog ORDER BY timestamp DESC').fetchall()
-    conn.close()
-
-    logs = []
-    for log in logs_from_db:
-        log_dict = dict(log)
-        # Convert timestamp string to datetime object and make it timezone-aware
-        dt_naive = datetime.fromisoformat(log_dict['timestamp'].replace('Z', ''))
-        dt_utc = dt_naive.replace(tzinfo=timezone.utc)
-        ist_tz = ZoneInfo("Asia/Kolkata")
-        log_dict['timestamp'] = dt_utc.astimezone(ist_tz)
-        logs.append(log_dict)
-
-    return render_template('audit_log.html', logs=logs)
-
-@app.route('/admin/users/delete/<int:user_id>', methods=['POST'])
-def delete_user(user_id):
-    if 'user_id' not in session or session.get('role') != 'super_admin':
-        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
-
-    if user_id == session['user_id']:
-        return jsonify({'success': False, 'message': 'You cannot delete yourself.'}), 400
-
-    conn = get_db_connection()
-    conn.execute('DELETE FROM Users WHERE id = ?', (user_id,))
-    conn.commit()
-    conn.close()
-
-    return jsonify({'success': True, 'message': 'User deleted successfully.'})
-
-@app.route('/podium')
-def podium():
-    conn = get_db_connection()
-    standings_raw = get_school_standings(conn)
-    conn.close()
-
-    standings = []
-    rank = 0
-    last_school_details = (-1, -1, -1, -1)
-    for i, school in enumerate(standings_raw):
-        current_school_details = (school['total_points'], school['first_places'], school['second_places'], school['third_places'])
-        if current_school_details != last_school_details:
-            rank += 1
-        standings.append(dict(school, rank=rank))
-        last_school_details = current_school_details
-
-    top_schools = [s for s in standings if s['rank'] <= 3]
-
-    return render_template('podium.html', top_three=top_schools)
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('login'))
-
-# to delete a school
-@app.route('/admin/schools/delete/<int:school_id>', methods=['POST'])
-def delete_school(school_id):
-    if 'user_id' not in session:
-        return jsonify({'success': False, 'message': 'Unauthorized'}), 401
-
-    conn = get_db_connection()
-
-    school_to_delete = conn.execute('SELECT name FROM Schools WHERE id = ?', (school_id,)).fetchone()
-    if not school_to_delete:
-        conn.close()
-        return jsonify({'success': False, 'message': 'School not found.'}), 404
-
-    school_name = school_to_delete['name']
-
-    # check if school has any results, cant delete if so
-    results_check = conn.execute('''
-        SELECT 1 FROM Results WHERE first_place_school = ? OR second_place_school = ? OR third_place_school = ?
-    ''', (school_name, school_name, school_name)).fetchone()
-
-    if results_check:
-        conn.close()
-        return jsonify({'success': False, 'message': f"Cannot delete '{school_name}' because it has associated results."}), 400
-
-    conn.execute('DELETE FROM Schools WHERE id = ?', (school_id,))
-    conn.commit()
-    conn.close()
-
-    return jsonify({'success': True, 'message': f"School '{school_name}' deleted successfully."})
-
-# to edit a school name
-@app.route('/admin/schools/edit/<int:school_id>', methods=['GET', 'POST'])
-def edit_school(school_id):
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-    school = conn.execute('SELECT * FROM Schools WHERE id = ?', (school_id,)).fetchone()
-    if not school:
-        flash("School not found.", "danger")
-        conn.close()
-        return redirect(url_for('manage_schools'))
-
-    if request.method == 'POST':
-        new_name = request.form['name'].strip()
-        old_name = school['name']
-
-        if not new_name:
-            flash("School name can't be empty.", "danger")
-        elif new_name != old_name:
-            try:
-                # update name in all tables
-                conn.execute('UPDATE Schools SET name = ? WHERE id = ?', (new_name, school_id))
-                conn.execute('UPDATE Results SET first_place_school = ? WHERE first_place_school = ?', (new_name, old_name))
-                conn.execute('UPDATE Results SET second_place_school = ? WHERE second_place_school = ?', (new_name, old_name))
-                conn.execute('UPDATE Results SET third_place_school = ? WHERE third_place_school = ?', (new_name, old_name))
-                conn.commit()
-                flash(f"School name changed to '{new_name}'.", "success")
-                conn.close()
-                return redirect(url_for('manage_schools'))
-            except sqlite3.IntegrityError:
-                flash(f"School name '{new_name}' already exists.", "danger")
-                # stay on page to show error
-        else:
-            # no change
-            flash("No changes made.", "info")
-
-        conn.close()
-        return redirect(url_for('edit_school', school_id=school_id))
-
-    # show the page
-    conn.close()
-    return render_template('edit_school.html', school=school)
-
-# page to add/delete/edit schools
-@app.route('/admin/schools', methods=['GET', 'POST'])
-def manage_schools():
-    if 'user_id' not in session:
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-
-    # for adding a new school
-    if request.method == 'POST':
-        school_name = request.form['name'].strip()
-        if school_name:
-            try:
-                conn.execute('INSERT INTO Schools (name) VALUES (?)', (school_name,))
-                conn.commit()
-                flash(f"School '{school_name}' added!", "success")
-            except sqlite3.IntegrityError:
-                flash(f"School '{school_name}' already exists.", "danger")
-        else:
-            flash("School name can't be empty.", "danger")
-
-        conn.close()
-        return redirect(url_for('manage_schools'))
-
-    # show the page with all schools
-    schools = conn.execute('SELECT * FROM Schools ORDER BY name ASC').fetchall()
-    conn.close()
-
-    return render_template('manage_schools.html', schools=schools)
-
-@app.route('/admin/events', methods=['GET', 'POST'])
-def manage_events():
-    if 'user_id' not in session or session.get('role') != 'super_admin':
-        flash("You are not authorized to access this page.", "danger")
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-
-    if request.method == 'POST':
-        name = request.form['name']
-        first_points = request.form['first_place_points']
-        second_points = request.form['second_place_points']
-        third_points = request.form['third_place_points']
-        try:
-            conn.execute(
-                'INSERT INTO Events (name, first_place_points, second_place_points, third_place_points) VALUES (?, ?, ?, ?)',
-                (name, first_points, second_points, third_points)
-            )
-            conn.commit()
-            flash(f"Event '{name}' created successfully.", "success")
-        except sqlite3.IntegrityError:
-            flash(f"Event '{name}' already exists.", "danger")
-        return redirect(url_for('manage_events'))
-
-    events = conn.execute('SELECT * FROM Events ORDER BY name ASC').fetchall()
-    conn.close()
-
-    return render_template('manage_events.html', events=events)
-
-@app.route('/admin/events/edit/<int:event_id>', methods=['GET', 'POST'])
-def edit_event(event_id):
-    if 'user_id' not in session or session.get('role') != 'super_admin':
-        flash("You are not authorized to access this page.", "danger")
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-
-    if request.method == 'POST':
-        name = request.form['name']
-        first_points = request.form['first_place_points']
-        second_points = request.form['second_place_points']
-        third_points = request.form['third_place_points']
-        try:
-            conn.execute(
-                'UPDATE Events SET name = ?, first_place_points = ?, second_place_points = ?, third_place_points = ? WHERE id = ?',
-                (name, first_points, second_points, third_points, event_id)
-            )
-            conn.commit()
-            flash(f"Event '{name}' updated successfully.", "success")
-        except sqlite3.IntegrityError:
-            flash(f"Event '{name}' already exists.", "danger")
-        return redirect(url_for('manage_events'))
-
-    event = conn.execute('SELECT * FROM Events WHERE id = ?', (event_id,)).fetchone()
-    conn.close()
-
-    return render_template('edit_event.html', event=event)
-
-@app.route('/admin/events/delete/<int:event_id>', methods=['POST'])
-def delete_event(event_id):
-    if 'user_id' not in session or session.get('role') != 'super_admin':
-        flash("You are not authorized to access this page.", "danger")
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-    conn.execute('DELETE FROM Events WHERE id = ?', (event_id,))
-    conn.commit()
-    conn.close()
-    flash('Event deleted successfully.', 'success')
-    return redirect(url_for('manage_events'))
-
-@app.route('/admin/users', methods=['GET', 'POST'])
-def manage_users():
-    if 'user_id' not in session or session.get('role') != 'super_admin':
-        flash("You are not authorized to access this page.", "danger")
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        role = request.form['role']
-
-        if not username or not password or not role:
-            flash("Username, password, and role are required.", "danger")
-        else:
-            hashed_password = generate_password_hash(password, method='scrypt')
-            try:
-                conn.execute(
-                    'INSERT INTO Users (username, password_hash, role) VALUES (?, ?, ?)',
-                    (username, hashed_password, role)
-                )
-                conn.commit()
-                flash(f"User '{username}' created successfully.", "success")
-            except sqlite3.IntegrityError:
-                flash(f"Username '{username}' already exists.", "danger")
-
-        return redirect(url_for('manage_users'))
-
-    users = conn.execute('SELECT id, username, role FROM Users').fetchall()
-    conn.close()
-
-    return render_template('manage_users.html', users=users)
-
-@app.route('/super_admin_dashboard')
-def super_admin_dashboard():
-    if 'user_id' not in session or session.get('role') != 'super_admin':
-        flash("You are not authorized to access this page.", "danger")
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-    all_events = conn.execute('SELECT e.id, e.name, e.results_entered, r.first_place_school, r.second_place_school, r.third_place_school FROM Events e LEFT JOIN Results r ON e.id = r.event_id ORDER BY e.name').fetchall()
-    schools_query = "SELECT name FROM Schools ORDER BY name ASC"
-    schools = [row['name'] for row in conn.execute(schools_query).fetchall()]
-    conn.close()
-
-    pending = [e for e in all_events if not e['results_entered']]
-    submitted = [e for e in all_events if e['results_entered']]
-
-    return render_template('super_admin_dashboard.html', pending_events=pending, submitted_events=submitted, schools=schools)
-
-@app.route('/init-first-user')
-def init_first_user():
-    conn = get_db_connection()
-    user_count = conn.execute('SELECT COUNT(id) FROM Users').fetchone()[0]
-
-    if user_count > 0:
-        conn.close()
-        return "Initial user already exists.", 403
-
-    username = os.environ.get('INITIAL_ADMIN_USER')
-    password = os.environ.get('INITIAL_ADMIN_PASS')
-
-    if not username or not password:
-        conn.close()
-        return "INITIAL_ADMIN_USER and INITIAL_ADMIN_PASS environment variables must be set.", 500
-
-    hashed_password = generate_password_hash(password, method='scrypt')
-    with conn:
-        conn.execute(
-            'INSERT INTO Users (username, password_hash, role) VALUES (?, ?, ?)',
-            (username, hashed_password, 'super_admin')
-        )
-    conn.close()
-    return "Initial super admin user created successfully.", 200
-
+# -- MAIN EXECUTION --
 if __name__ == '__main__':
-    app.run(debug=True)
+    # This block runs when the script is executed directly (e.g., `python app.py`).
+    # It's a good practice to put script execution code here.
+
+    # Ask the user if they want to set up the database.
+    # This makes the first run experience smoother.
+    if input("Do you want to set up the database? (This will create tables and add sample data) [y/n]: ").lower() == 'y':
+        setup_database()
+
+    # Start the Flask development web server.
+    # `debug=True` is useful for development as it shows detailed errors
+    # and automatically reloads the server when code changes.
+    app.run(debug=True, port=5001)
