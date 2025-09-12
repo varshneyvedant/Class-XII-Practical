@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import check_password_hash, generate_password_hash
 import io
 import csv
+import os
 
 app = Flask(__name__)
 app.secret_key = 'silico_battles_2025_winner'
@@ -534,15 +535,26 @@ def export_leaderboard_csv():
 
     return response
 
+def init_db_on_startup():
+    """
+    Initializes the database if it doesn't exist.
+    This is suitable for deployment environments where interactive prompts are not possible.
+    """
+    if not os.path.exists(DB_PATH):
+        print(f"Database file '{DB_PATH}' not found. Creating and seeding a new one.")
+        setup_database()
+    else:
+        print(f"Database file '{DB_PATH}' already exists. Skipping initialization.")
+
+# Initialize the database when the application starts
+init_db_on_startup()
+
 # -- MAIN EXECUTION --
 if __name__ == '__main__':
     # This block runs when the script is executed directly (e.g., `python app.py`).
-    # It's a good practice to put script execution code here.
-
-    # Ask the user if they want to set up the database.
-    # This makes the first run experience smoother.
-    if input("Do you want to set up the database? (This will create tables and add sample data) [y/n]: ").lower() == 'y':
-        setup_database()
+    # It's useful for local development and testing.
+    # For deployment, a WSGI server like Gunicorn will import the 'app' object directly,
+    # so this block will not be executed.
 
     # Start the Flask development web server.
     # `debug=True` is useful for development as it shows detailed errors

@@ -33,8 +33,9 @@
                 {# This loop demonstrates iterating through data in a template. #}
                 {% for school in schools %}
                 {# The 'clickable-row' class is used by main.js to make the row a link. #}
-                <tr class="clickable-row" data-href="{{ url_for('school_details', school_name=school.school) }}">
-                    <td data-label="Rank">{{ school.rank }}</td>
+                {# We add a class for the top 3 ranks to apply special styling (gold, silver, bronze). #}
+                <tr class="clickable-row {% if school.rank <= 3 %}rank-{{ school.rank }}{% endif %}" data-href="{{ url_for('school_details', school_name=school.school) }}">
+                    <td data-label="Rank">{{ school.rank }} {% if school.rank <= 3 %}🏆{% endif %}</td>
                     <td data-label="School Name">{{ school.school }}</td>
                     <td data-label="Total Points">{{ school.total_points }}</td>
                     <td data-label="1st Places">{{ school.first_places }}</td>
