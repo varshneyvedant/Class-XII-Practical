@@ -1,0 +1,109 @@
+# Project Presentation Outline
+
+This document provides a slide-by-slide outline for a 10-15 minute presentation on the "Interschool Competition Leaderboard" project.
+
+---
+
+**Slide 1: Title Slide**
+*   **Title:** Interschool Competition Leaderboard
+*   **Subtitle:** A CBSE Class XII Computer Science Project
+*   **Your Name:** Vedant Varshney
+*   **Your Class:** XII H
+*   **School Name:** Amity International School, Mayur Vihar
+*   **Session:** 2025-26
+
+---
+
+**Slide 2: Introduction & Objective**
+*   **Heading:** Project Introduction
+*   **What is the project?**
+    *   A web application to manage and display live scores for a school competition.
+*   **What is the problem it solves?**
+    *   Replaces slow, manual score-keeping with a real-time, automated system.
+    *   Increases engagement for participants and audience.
+*   **Primary Objective:**
+    *   To apply the concepts learned in Class XII Computer Science (Python, SQL, Networks) to build a practical, real-world application.
+
+---
+
+**Slide 3: Technologies Used**
+*   **Heading:** Technology Stack
+*   **Backend (The "Brain"):**
+    *   **Python:** The core programming language.
+    *   **Flask:** A simple and powerful web framework for Python.
+*   **Database (The "Memory"):**
+    *   **SQLite:** A lightweight, file-based SQL database.
+    *   Demonstrates Python's `sqlite3` library for connectivity.
+*   **Frontend (The "Face"):**
+    *   **HTML & CSS:** Standard languages for creating the web page structure and style.
+
+---
+
+**Slide 4: System Architecture**
+*   **Heading:** How It Works (Client-Server Model)
+*   **(Diagram: A simple flowchart showing Browser -> Internet -> Flask Server -> SQLite DB and back)**
+*   **The Client:** The user's web browser, which sends requests for pages.
+*   **The Server:** Our Python Flask application, which processes requests, interacts with the database, and sends back HTML pages.
+*   **The Database:** The SQLite file (`podium.db`) that stores all the data (schools, events, results).
+
+---
+
+**Slide 5: Key Features - Public View**
+*   **Heading:** Features for Everyone
+*   **(Screenshot: The main leaderboard page)**
+*   **Live Leaderboard:** Shows schools ranked by total points.
+*   **Tie-Breaker Logic:** Automatically sorts tied schools based on the number of 1st, 2nd, and 3rd place wins.
+*   **School Details Page:** Click on a school to see its detailed performance in all events.
+*   **CSV Export:** A button for the admin to download the current standings as a CSV file.
+
+---
+
+**Slide 6: Key Features - Admin Dashboard**
+*   **Heading:** Features for the Admin
+*   **(Screenshot: The Admin Login page)**
+*   **Secure Login:** The admin dashboard is password-protected. Passwords are **hashed** for security.
+*   **(Screenshot: The Admin Dashboard)**
+*   **Submit & Edit Results:** Admins can enter the winners for each event.
+*   **Manage Schools:** Admins can add new schools or remove existing ones.
+
+---
+
+**Slide 7: Code Snippet 1 - Python-SQL Connectivity**
+*   **Heading:** Code Highlight: Connecting to the Database
+*   **Purpose:** To show how Python connects to and reads from the SQLite database.
+*   **(Code Snippet: The `get_db_connection` function and a simple `conn.execute(...)` call from `app.py`)**
+*   **Explanation:**
+    *   We import the `sqlite3` library.
+    *   The `connect()` function opens the database file.
+    *   The `cursor()` object lets us execute SQL commands.
+    *   `fetchall()` retrieves the data for us to use in Python.
+
+---
+
+**Slide 8: Code Snippet 2 - File Handling (CSV Export)**
+*   **Heading:** Code Highlight: Exporting to a CSV File
+*   **Purpose:** To demonstrate the file handling requirement of the syllabus.
+*   **(Code Snippet: The `/export_leaderboard_csv` route from `app.py`)**
+*   **Explanation:**
+    *   We use the standard `io` and `csv` libraries.
+    *   The code fetches the data, writes it row-by-row into an in-memory text stream using `csv.writer`.
+    *   The final text is sent to the browser as a downloadable file.
+
+---
+
+**Slide 9: Conclusion & Future Scope**
+*   **Heading:** Conclusion
+*   **Summary:** Successfully created a functional web application that meets all the core requirements of the CBSE syllabus.
+*   **Learning Outcomes:** Gained practical experience in Python programming, database management, and web development principles.
+*   **Heading:** Future Scope
+*   **Possible Improvements:**
+    *   Adding support for multiple types of users (e.g., event coordinators).
+    *   Creating more detailed data visualizations or charts.
+    *   Allowing schools to register online.
+
+---
+
+**Slide 10: Thank You & Q&A**
+*   **Heading:** Thank You
+*   **A simple "Thank You" message.**
+*   **Open for questions.**
