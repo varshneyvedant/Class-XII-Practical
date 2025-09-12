@@ -1,19 +1,20 @@
 -- Default Events
-INSERT INTO Events (name, first_place_points, second_place_points, third_place_points) VALUES
-('Chess', 100, 75, 50),
-('Cyquest', 100, 75, 50),
-('Dexterity', 100, 75, 50),
-('Digital Imaging', 120, 80, 60),
-('Fotographia', 100, 75, 50),
-('24 Frames', 100, 75, 50),
-('Programming', 150, 100, 75),
-('Quiz', 100, 75, 50),
-('Respawn Console', 80, 60, 40),
-('Respawn Mobile', 80, 60, 40),
-('Respawn PC', 80, 60, 40),
-('Robowars', 120, 80, 60),
-('Surprise', 100, 75, 50),
-('Verse Off', 100, 75, 50);
+-- Default Events (simplified schema, no points)
+INSERT INTO Events (name) VALUES
+('Chess'),
+('Cyquest'),
+('Dexterity'),
+('Digital Imaging'),
+('Fotographia'),
+('24 Frames'),
+('Programming'),
+('Quiz'),
+('Respawn Console'),
+('Respawn Mobile'),
+('Respawn PC'),
+('Robowars'),
+('Surprise'),
+('Verse Off');
 
 -- Default Schools
 INSERT INTO Schools (name) VALUES
@@ -28,10 +29,8 @@ INSERT INTO Schools (name) VALUES
 ('Mayoor School, Noida'),
 ('Somerville School, Noida');
 
--- Demo Super Admin User
--- Password is 'demo_super_admin'
-INSERT INTO Users (username, password_hash, role) VALUES
-('demo_super_admin', 'scrypt:32768:8:1$2T5lKTnEdcYQDzXw$4e87879f2ecc7573acc0d60a6c208161217f68498552c87f6cc5c1cf5df027a95297332440923f23d6c3898848a5fb97f07250b004ee1173d2913aa2d3e6e8cc', 'super_admin');
+-- Note: A default 'admin' user is created by the application automatically.
+-- No need to insert users here.
 
 -- Sample Results
 INSERT INTO Results (event_id, first_place_school, second_place_school, third_place_school, submitted_at) VALUES
