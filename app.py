@@ -219,17 +219,26 @@ def school_details(school_name):
     """
     conn = get_db_connection()
     
-    # Get the school's rank
+    # Get the school's rank by processing the full leaderboard
     standings_raw = get_school_standings(conn)
-    rank = "N/A"
+    current_rank = "N/A"
     total_points = 0
+
+    # This logic correctly calculates ranks, including handling for ties
+    rank_counter = 0
+    last_score = (-1, -1, -1, -1)
     for i, school in enumerate(standings_raw):
+        current_score = (school['total_points'], school['first_places'], school['second_places'], school['third_places'])
+        if current_score != last_score:
+            rank_counter = i + 1
+
         if school['school'] == school_name:
-            # The rank is the index + 1, but we need to handle ties.
-            # The `get_school_standings` function can be extended to return ranks if needed.
-            # For now, we'll just show the points.
+            current_rank = rank_counter
             total_points = school['total_points']
+            # We can break here since we found our school
             break
+
+        last_score = current_score
 
     # Get all the positions the school has achieved.
     positions_query = """
