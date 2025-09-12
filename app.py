@@ -67,11 +67,11 @@ def seed_data(conn):
     This demonstrates reading from a file and executing SQL DML (Data Manipulation Language).
     """
     try:
-        with open('seed.sql') as f:
+        with open('db/seed.sql') as f:
             conn.executescript(f.read())
         print("Database seeded with initial data.")
     except FileNotFoundError:
-        print("'seed.sql' not found. Skipping seeding.")
+        print("'db/seed.sql' not found. Skipping seeding.")
     except Exception as e:
         print(f"An error occurred during seeding: {e}")
 
