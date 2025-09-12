@@ -19,11 +19,7 @@
         <nav>
             <a href="{{ url_for('scoring_view') }}" class="{{ 'active' if request.path == url_for('scoring_view') else '' }}">Points Table</a>
             {% if session.user_id %}
-                {% if session.role == 'super_admin' %}
-                    <a href="{{ url_for('super_admin_dashboard') }}">Dashboard</a>
-                {% elif session.role == 'admin' %}
-                    <a href="{{ url_for('admin_dashboard') }}">Dashboard</a>
-                {% endif %}
+                <a href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a>
                 <a href="{{ url_for('logout') }}">Logout</a>
             {% else %}
                 <a href="{{ url_for('login') }}">Admin Login</a>
@@ -32,6 +28,7 @@
     </div>
 </header>
     <main>
+        {# This is a Jinja2 comment. This block displays flashed messages (like "Login successful!"). #}
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             <div class="flash-messages">
@@ -44,12 +41,9 @@
         {% block content %}{% endblock %}
     </main>
     <footer>
-        <p>&copy; 2025 Interschool Competition</p>
+        <p>&copy; 2025 CBSE Computer Science Project</p>
     </footer>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-<script src="{{ url_for('static', filename='js/confetti.js') }}"></script>
+{# The complex JavaScript for charts has been removed for simplification. #}
 <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-
 </body>
 </html>

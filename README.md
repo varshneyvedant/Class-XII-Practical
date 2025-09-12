@@ -1,99 +1,68 @@
-# Podium - The Winning Live Leaderboard 🏆
+# Project: Interschool Competition Leaderboard
 
-Welcome to Podium, the live, real-time web application that was the winning entry for the Sillico Battles v21.1 inter-school competition. This project was developed and deployed under pressure, with features added on the fly based on the judges' requests. It's a testament to rapid, agile, and effective software development.
+This project is a web application for tracking the live leaderboard and results of an inter-school competition. It has been adapted and simplified to be suitable for a CBSE Class XII Computer Science project for the 2025-26 session.
 
-This document will guide you through exploring the application, both as a live demo and for those who wish to dive into the code.
+The core technologies used are Python, the Flask web framework, and an SQLite database. The focus is on demonstrating key concepts from the CBSE syllabus in a practical, easy-to-understand manner.
 
----
+## Key Features (CBSE Adaptation)
 
-## 🚀 Live Demo
+*   **Live Leaderboard:** A public-facing page that shows the current school rankings, updated in real-time as results are entered.
+*   **Admin Dashboard:** A password-protected area where an administrator can log in to:
+    *   Submit results for different events.
+    *   Edit previously submitted results.
+    *   Add or remove participating schools.
+*   **Python-SQL Connectivity:** All data is stored in an SQLite database (`podium.db`). The project demonstrates creating tables, inserting data, and fetching data using Python's `sqlite3` module.
+*   **File Handling:** The project includes a feature to export the live leaderboard to a CSV file, demonstrating how to generate and serve files from a web application using Python's `csv` module.
 
-Experience the live, deployed application here: **[[Link to Deployed Site](https://podium-app.onrender.com/)]**
+## How to Run the Project
 
-### Exploring the Admin Features
+This project is designed to be simple to run with a standard Python installation.
 
-To see the powerful admin and super admin dashboards, which allow for real-time management of the competition, please use the following public demo credentials:
+### Prerequisites
 
-*   **Username:** `demo_super_admin`
-*   **Password:** `demo_super_admin`
+*   Python 3.10 or newer.
+*   `pip` (Python's package installer).
 
-With these credentials, you can:
-*   Add, edit, and delete schools.
-*   Manage events and their point values.
-*   Submit and edit event results.
-*   View a comprehensive audit log of all actions.
+### Setup and Execution
 
-The demo database is reset periodically, so feel free to experiment!
+1.  **Clone the repository or download the source code.**
 
----
+2.  **Navigate to the project directory:**
+    ```bash
+    cd path/to/your/project
+    ```
 
-## ✨ Features
+3.  **Install the required Python library (Flask):**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-### Public-Facing Features
-*   **Live Leaderboard:** A real-time view of school standings, automatically sorted by rank.
-*   **Dense Ranking with Advanced Tie-Breaking:**
-    *   Schools are ranked using a "dense" system (e.g., 1, 2, 2, 3).
-    *   Ties in total points are broken by the number of 1st, then 2nd, then 3rd place finishes.
-*   **Visual Highlights:** The top 3 ranked schools are highlighted with gold, silver, and bronze colors.
-*   **Visual Podium with Confetti:** A visual representation of the top 3 ranked schools with a celebratory confetti effect.
-*   **Detailed School Pages:** Click on a school to see its detailed results and performance summary.
-*   **Score Progression Chart:** A dynamic line chart visualizing how school scores have evolved over time.
-*   **Download as PDF:** Download the current leaderboard as a PDF document.
+4.  **Set up the database (First Time Only):**
+    When you run the application for the first time, it will prompt you to set up the database. This will create the `podium.db` file, set up the necessary tables, and add some sample data.
 
-### Admin & Super Admin Features
-*   **Tiered User Roles:** A secure authentication system with `admin` and `super_admin` roles.
-*   **Full Content Management:** Admins can manage schools, events, and results. Super admins can also manage users.
-*   **Audit Log:** A comprehensive log that tracks all significant actions.
-*   **Predictive Analytics:** A feature to forecast the top contenders based on current performance.
+    Run the application:
+    ```bash
+    python app.py
+    ```
 
----
+    In the terminal, you will be asked:
+    `Do you want to set up the database? ... [y/n]:`
 
-## 🛠️ Technology Stack
+    Type `y` and press Enter. The database will be initialized, and a default admin user will be created with the credentials:
+    - **Username:** `admin`
+    - **Password:** `password`
 
-*   **Backend:** Python (Flask)
-*   **Database:** SQLite
-*   **Frontend:** HTML, CSS, JavaScript, Jinja2
-*   **PDF Generation:** `pdfkit`
-*   **Password Security:** Passwords are securely hashed using the `scrypt` algorithm via `Werkzeug`.
+5.  **Access the Application:**
+    Once the server is running, open your web browser and go to:
+    [http://127.0.0.1:5001](http://127.0.0.1:5001)
 
----
+    You can view the leaderboard. To manage data, click on "Admin Login" and use the credentials above.
 
-## 👨‍💻 For Developers: Running Locally
+## Summary of Changes for CBSE Adaptation
 
-For those who wish to dive into the code and run the project on their own machine.
-
-### Step 1: Get the Code
-```bash
-git clone https://github.com/varshneyvedant/podium-app.git
-cd podium-app
-```
-
-### Step 2: Set Up a Virtual Environment
-```bash
-# For macOS/Linux
-python3 -m venv venv
-source venv/bin/activate
-
-# For Windows
-python -m venv venv
-venv\Scripts\activate
-```
-
-### Step 3: Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-*Note: The "Download as PDF" feature requires `wkhtmltopdf` to be installed on your system. You can download it from [here](https://wkhtmltopdf.org/downloads.html).*
-
-### Step 4: Initialize the Database
-The first time you run the application, the database needs to be created and seeded with sample data.
-```bash
-flask init-db
-```
-This will create a `podium.db` file and populate it with sample schools, events, and a `demo_super_admin` user.
-
-### Step 5: Run the Application
-```bash
-flask run
-```
-The application will be available at `http://127.0.0.1:5000`. You can log in with the `demo_super_admin` credentials mentioned in the "Live Demo" section.
+The original project was a more complex application. It was simplified as follows:
+*   **Removed Complex Dependencies:** Libraries for PDF generation (`pdfkit`) and production servers (`gunicorn`) were removed.
+*   **Simplified User Roles:** The `super_admin` role was removed, leaving a single `admin` role to simplify the logic.
+*   **Removed Advanced Features:** JavaScript-based charts, predictive analytics, and other cosmetic features were removed to focus on the core, explainable functionality.
+*   **Simplified Code:** The Python code was refactored to be more readable, with smaller functions and extensive comments. SQL queries were also simplified.
+*   **Added Educational Artifacts:** Created several new files (`teacher_explanation.md`, `CBSE_mapping.md`, `python_sql_demo.py`, etc.) to help with the project submission and viva.
