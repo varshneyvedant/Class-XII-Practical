@@ -267,7 +267,7 @@ def school_details(school_name):
                            results=positions,
                            summary=summary,
                            total_points=total_points,
-                           rank=rank) # Rank is simplified for now
+                           rank=current_rank)
 
 # -- ADMIN ROUTES --
 # These routes are for administrators to manage the application data.

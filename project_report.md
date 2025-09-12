@@ -3,8 +3,8 @@
 | | |
 | :--- | :--- |
 | **Project Title:** | Interschool Competition Leaderboard |
-| **Student Name:** | [Your Name Here] |
-| **Class/Section:** | XII / [Your Section] |
+| **Student Name:** | Vedant Varshney |
+| **Class/Section:** | XII / H |
 | **Subject:** | Computer Science (083) |
 | **Session:** | 2025-26 |
 
