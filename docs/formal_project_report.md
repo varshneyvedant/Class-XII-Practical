@@ -153,20 +153,36 @@ import os
 
 **(This section is to be filled with screenshots from the running application.)**
 
+### **Application UI Screenshots**
+
 **[Screenshot 1: The Main Leaderboard Page]**
-*Caption: The public-facing leaderboard, showing schools ranked by total points. The top 3 ranks are highlighted.*
+*Caption: The public-facing leaderboard, showing schools ranked by total points. The top 3 ranks are highlighted with special colors.*
 
 **[Screenshot 2: The School Details Page]**
-*Caption: The detailed view for a single school, showing its rank, total points, and performance in each event.*
+*Caption: The detailed view for a single school, showing its current rank, total points, and performance in each event.*
 
 **[Screenshot 3: The Admin Login Page]**
 *Caption: The secure login portal for the site administrator.*
 
 **[Screenshot 4: The Admin Dashboard]**
-*Caption: The main admin control panel, showing forms to submit results and manage schools.*
+*Caption: The main admin control panel, showing forms to submit results for pending events and to add or delete schools.*
 
 **[Screenshot 5: The Exported CSV File]**
 *Caption: The `leaderboard.csv` file opened in a spreadsheet application, showing the exported data.*
+
+### **Database Interaction Screenshots**
+
+**[Screenshot 6: Database View Before Submitting a Result]**
+*Caption: A view of the `Results` table in "DB Browser for SQLite" before a new result is added. Note the existing rows.*
+
+**[Screenshot 7: Database View After Submitting a Result]**
+*Caption: The `Results` table after submitting a new result through the web application. Note the newly added row at the bottom, demonstrating a successful `INSERT` operation.*
+
+**[Screenshot 8: Database View Before Editing a Result]**
+*Caption: The `Results` table showing a specific row before an edit is made.*
+
+**[Screenshot 9: Database View After Editing a Result]**
+*Caption: The same row in the `Results` table after being modified via the "Edit" function in the application, demonstrating a successful `UPDATE` operation.*
 
 ---
 
