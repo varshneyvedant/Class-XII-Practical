@@ -58,11 +58,6 @@ This project is designed to be simple to run with a standard Python installation
 
     You can view the leaderboard. To manage data, click on "Admin Login" and use the credentials above.
 
-## Summary of Changes for CBSE Adaptation
+## Project Scope
 
-The original project was a more complex application. It was simplified as follows:
-*   **Removed Complex Dependencies:** Libraries for PDF generation (`pdfkit`) and production servers (`gunicorn`) were removed.
-*   **Simplified User Roles:** The `super_admin` role was removed, leaving a single `admin` role to simplify the logic.
-*   **Removed Advanced Features:** JavaScript-based charts, predictive analytics, and other cosmetic features were removed to focus on the core, explainable functionality.
-*   **Simplified Code:** The Python code was refactored to be more readable, with smaller functions and extensive comments. SQL queries were also simplified.
-*   **Added Educational Artifacts:** Created several new files (`teacher_explanation.md`, `CBSE_mapping.md`, `python_sql_demo.py`, etc.) to help with the project submission and viva.
+This project was designed and developed from the ground up as a practical implementation of the concepts taught in the CBSE Class XII Computer Science curriculum. The focus is on clarity, readability, and directly mapping features to syllabus topics like Python-SQL connectivity, file handling, and web basics.
