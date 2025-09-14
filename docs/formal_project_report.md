@@ -5,14 +5,29 @@
 ## For AISSCE 2025-26 Examination
 ## As a part of the Computer Science Course (083)
 
+<br>
+<br>
+
 ### **Submitted by:**
 ### Vedant Varshney
 ### Class: XII H
 ### Roll Number: [Your Roll Number]
 
----
+<br>
 
-# **CERTIFICATE**
+### **Submitted to:**
+### Ms. Deepshika Sethi
+### Department of Computer Science
+
+<br>
+<br>
+
+**Amity International School, Mayur Vihar**
+
+---
+<div style="page-break-after: always;"></div>
+
+# **Certificate**
 
 This is to certify that the Project entitled, **Interschool Competition Leaderboard** is a bonafide work done by **Vedant Varshney** of class **12 H**, Session 2025-26 in partial fulfillment of CBSE’s AISSCE Examination 2025-26 and has been carried out under my supervision and guidance.
 
@@ -22,57 +37,115 @@ This is to certify that the Project entitled, **Interschool Competition Leaderbo
 
 **……………………………**
 <br>
-**Signature of teacher guide**
+**Signature of Teacher Guide**
 <br>
 **(Ms. Deepshikha Sethi)**
 
 ---
+<div style="page-break-after: always;"></div>
+
+# **Acknowledgement**
+
+I would like to express my special thanks of gratitude to my teacher **Ms. Deepshikha Sethi**, as well as our principal, who gave me this golden opportunity to do this wonderful project on the topic "Interschool Competition Leaderboard". This project helped me greatly in my research and allowed me to learn many new things about practical software development.
+
+The project would not have been completed without the constant support and kind help of my teacher. I would also like to thank my parents and friends who supported and encouraged me throughout the development of this project within the limited time frame.
+
+**Vedant Varshney**
+**Class XII H**
+
+---
+<div style="page-break-after: always;"></div>
+
+# **Executive Summary**
+
+The "Interschool Competition Leaderboard" is a purpose-built web application designed to address the inefficiencies of manual score-keeping in school-level competitive events. The primary problem this project solves is the delay and potential for human error inherent in traditional systems, replacing them with a dynamic, real-time, and reliable solution.
+
+The core of the project is a Python-based web server built using the **Flask** framework, which provides a user-friendly interface for both participants and administrators. Key features include a public-facing live leaderboard, a secure admin dashboard for managing results and schools, and a data export function. The application's data persistence is handled by an **SQLite** database, demonstrating robust database management concepts.
+
+This project was developed specifically to align with the **Class XII CBSE Computer Science curriculum**. It serves as a practical demonstration of fundamental concepts, including Python programming, functions, data structures, database connectivity via the `sqlite3` module, SQL queries, and file handling. The system's architecture and implementation have been intentionally kept clear and straightforward to ensure every aspect is understandable and explainable, making it an ideal academic project.
+
+---
+<div style="page-break-after: always;"></div>
 
 # **Index**
 
 | S.No | CONTENTS | PAGE NO. |
 | :--- | :--- | :--- |
-| 1 | Acknowledgement | 4 |
-| 2 | Introduction | 5 |
-| 3 | System Requirements | 7 |
-| 4 | Modules Imported & Functions Used | 8 |
-| 5 | Python Code | 11 |
-| 6 | Output Screens | 12 |
-| 7 | Bibliography | 13 |
+| 1 | Introduction | |
+| 2 | System Architecture & Design | |
+| 3 | System Requirements | |
+| 4 | Modules Imported & Functions Used | |
+| 5 | Detailed Implementation & Code Explanation | |
+| 6 | Testing and Validation | |
+| 7 | Output Screens | |
+| 8 | Future Enhancements | |
+| 9 | Conclusion | |
+| 10 | Bibliography | |
+| 11 | Appendix A: Full Source Code (`app.py`) | |
+| 12 | Appendix B: User Manual / Deployment Guide | |
 
 ---
+<div style="page-break-after: always;"></div>
 
-# **Acknowledgement**
+# **1. Introduction**
 
-I would like to express my special thanks of gratitude to my teacher **Ms. Deepshikha Sethi**, who gave me this golden opportunity to do this wonderful project on the topic "Interschool Competition Leaderboard". This helped me in doing a lot of research and I came to know about so many new things. The project would not have been completed without her support and kind help.
+### **1.1. Objectives**
+The primary objective of this project is to design and develop a fully functional client-server application that automates the management of results for an inter-school competition. The project aims to:
+*   Provide a centralized, web-based platform for real-time score tracking.
+*   Eliminate the delays and errors associated with manual result tallying.
+*   Create a secure and intuitive interface for administrators to manage competition data.
+*   Serve as a practical, hands-on application of the key programming and database management concepts covered in the CBSE Class XII Computer Science syllabus.
 
-I would also like to thank my parents and friends who supported me throughout the development of this project.
+### **1.2. Advantages**
+*   **Reduces Workload:** Automates score calculation and ranking.
+*   **Real-Time Updates:** Instantly reflects new results on the public leaderboard.
+*   **Data Persistence:** Securely stores all data in a robust SQLite database.
+*   **Accessibility:** As a web application, it can be easily accessed by multiple users on a network.
+*   **Data Integrity:** Prevents accidental data loss, for example, by blocking the deletion of a school that has existing results.
 
-**Jaikrit Sethi**
-
----
-
-# **Introduction**
-
-### **Objectives of the Project**
-*   This software is designed to manage and display live results for an inter-school competition in a smooth and effective manner.
-*   The software is supported to eliminate and in some cases, reduce the hardships faced by existing manual systems, such as delays and human error.
-*   This project aims to demonstrate the practical application of programming and database concepts learned in the Class XII curriculum.
-
-### **Advantages of the Project**
-1.  **Reduces Workload:** Automates the calculation of scores and rankings, reducing the manual workload on event organizers.
-2.  **Real-Time Updates:** Provides live, up-to-the-minute standings for all participants and viewers.
-3.  **Time Efficient:** Organizers can input results as they are announced, and the leaderboard reflects the changes instantly.
-4.  **Data Persistence:** Securely stores all school, event, and result data in a database for future reference.
-5.  **Accessibility:** Being a web application, it can be accessed by anyone with a web browser on the local network.
-
-### **Limitations of the Project**
-1.  **Single Admin User:** The project currently supports only one administrator account. It does not have a multi-user login system.
-2.  **No Historical Data Tracking:** The system does not store historical leaderboards; it only shows the current state of the competition.
+### **1.3. Core Technologies Used**
+*   **Python:** The high-level programming language used for all backend logic. Chosen for its readability and powerful standard library.
+*   **Flask:** A lightweight "micro" web framework for Python. Chosen for its simplicity and flexibility, which are ideal for building a focused, understandable web application without unnecessary complexity.
+*   **SQLite 3:** A self-contained, serverless SQL database engine. Chosen because it is included with Python and requires no separate installation, making the project highly portable and easy to run.
+*   **HTML/CSS:** Standard markup and styling languages used to structure and design the frontend user interface.
 
 ---
+<div style="page-break-after: always;"></div>
 
-# **System Requirements**
+# **2. System Architecture & Design**
+
+### **2.1. System Architecture (Flowchart)**
+The application follows a standard **Client-Server Architecture**. The interaction between components can be visualized as follows:
+
+**[Placeholder for a Flowchart/Diagram]**
+
+*   **Description of Flowchart:**
+    1.  **User's Web Browser (Client):** The user opens a web browser and navigates to the application's URL (e.g., `http://127.0.0.1:5001`). This sends an HTTP request to the server.
+    2.  **Flask Web Server (Backend):** The Flask application receives the request. It identifies which function needs to handle this specific URL (e.g., the `/` route is handled by the `standings_view()` function).
+    3.  **Database Interaction:** The Flask function connects to the `podium.db` (SQLite) database to fetch, insert, or update data as required.
+    4.  **Response Generation:** The function then renders an HTML template, populating it with the data retrieved from the database.
+    5.  **HTTP Response:** The server sends the final HTML document back to the client's browser, which then displays the web page to the user.
+
+### **2.2. Database Schema (ER Diagram)**
+The database is designed with four tables to logically store the application's data.
+
+**[Placeholder for an ER Diagram]**
+
+*   **Description of ER Diagram:**
+    *   **Entities:** `Users`, `Schools`, `Events`, `Results`.
+    *   **Relationships:**
+        *   An `Event` can have one set of `Results`. This is a one-to-one relationship enforced by making `event_id` a unique key in the `Results` table.
+        *   A `School` can appear in many `Results`.
+    *   **Key Attributes:**
+        *   `Users`: `id` (Primary Key), `username`, `password_hash`.
+        *   `Schools`: `id` (Primary Key), `name`.
+        *   `Events`: `id` (Primary Key), `name`.
+        *   `Results`: `id` (Primary Key), `event_id` (Foreign Key to Events), `first_place_school`, `second_place_school`, `third_place_school`.
+
+---
+<div style="page-break-after: always;"></div>
+
+# **3. System Requirements**
 
 ### **❖ Minimum Hardware Specifications:**
 
@@ -93,42 +166,170 @@ I would also like to thank my parents and friends who supported me throughout th
 | 5. | Client Software | A modern web browser (e.g., Google Chrome, Mozilla Firefox, Microsoft Edge) |
 
 ---
+<div style="page-break-after: always;"></div>
 
-# **Modules Imported & Functions Used**
+# **4. Modules Imported & Functions Used**
+
+*(This section provides a summary. Detailed explanations are in the next section.)*
 
 ### **Modules Imported**
-1.  **sqlite3:** The standard Python library for connecting to and interacting with an SQLite database.
-2.  **Flask:** The web framework used to build the application's routes and handle web requests.
-3.  **werkzeug.security:** Used specifically for its `generate_password_hash` and `check_password_hash` functions to ensure password security.
-4.  **csv & io:** Standard Python libraries used for the "Export to CSV" file handling feature.
-5.  **os:** Used to check for the existence of the database file on startup.
+*   **sqlite3:** For all database interactions.
+*   **Flask:** For creating the web server and handling routes.
+*   **werkzeug.security:** For secure password hashing.
+*   **csv, io:** For the CSV file export feature.
+*   **os:** To check for the database file's existence.
 
-### **Functions Used in Code**
+### **Functions Used**
+A table summarizing the key functions in `app.py` and their purpose.
+*(Abridged for brevity - see full list in `teacher_explanation.md`)*
 
 | Function Name | Function Use |
 | :--- | :--- |
-| `get_db_connection()` | Connects to the SQLite database file and returns a connection object. |
-| `create_tables()` | Executes SQL to create all the necessary tables if they don't exist. |
-| `seed_data()` | Populates the database with initial sample data from `db/seed.sql`. |
-| `create_admin_user()` | Creates the default admin user with a hashed password. |
-| `setup_database()` | A helper function that calls the table creation, seeding, and user creation functions. |
-| `init_db_on_startup()` | Checks if the database exists on startup and calls `setup_database()` if it doesn't. |
-| `get_school_standings()`| The core logic to calculate school rankings based on results and fixed points. |
-| `standings_view()` | Flask route to display the main public leaderboard page. |
-| `school_details()` | Flask route to display the detailed results for a single school. |
-| `login()` | Flask route to handle the admin login form and session creation. |
-| `logout()` | Flask route to clear the user session and log the admin out. |
-| `is_admin()` | A helper function to check if a user is currently logged in. |
-| `admin_dashboard()` | Flask route to display the main dashboard for the logged-in admin. |
-| `submit_result()` | Flask route that processes the form for submitting a new event result. |
-| `edit_result()` | Flask route to display and process the form for editing an existing result. |
-| `add_school()` | Flask route that processes the form for adding a new school. |
-| `delete_school()` | Processes the school deletion. Includes a data integrity check to prevent deleting a school that has existing results. |
-| `export_leaderboard_csv()`| Flask route that generates and serves the leaderboard as a downloadable CSV file. |
+| `get_db_connection()` | Connects to the SQLite database. |
+| `init_db_on_startup()`| Automatically creates and seeds the database on first run. |
+| `get_school_standings()`| Calculates school rankings from results. |
+| `standings_view()` | Route to display the public leaderboard. |
+| `admin_dashboard()` | Route to display the main admin control panel. |
+| `delete_school()` | Deletes a school after checking for existing results (Data Integrity). |
+| `export_leaderboard_csv()`| Generates and serves the leaderboard as a downloadable CSV file. |
 
 ---
+<div style="page-break-after: always;"></div>
 
-# **Python Code**
+# **5. Detailed Implementation & Code Explanation**
+
+This section explains the logic of key parts of the project, highlighting how they demonstrate concepts from the CBSE syllabus.
+
+### **5.1. Database Initialization on Startup**
+To make the application portable and easy to run, it automatically creates and seeds the database if the `podium.db` file is not found.
+*   **Concept:** Program flow control, File I/O (`os.path.exists`).
+*   **Code:**
+    ```python
+    def init_db_on_startup():
+        if not os.path.exists(DB_PATH):
+            print(f"Database file '{DB_PATH}' not found. Creating...")
+            setup_database()
+
+    # This line is called once when the app starts
+    init_db_on_startup()
+    ```
+
+### **5.2. Leaderboard Calculation Logic**
+The leaderboard is calculated in Python to make the logic clear and explainable.
+*   **Concepts:** Data Structures (Dictionary, List), Sorting (multi-level key).
+*   **Explanation:** The `get_school_standings()` function first fetches all results from the database. It then iterates through them, using a dictionary to aggregate the total points for each school. A fixed-point system (100/75/50) is used. Finally, the dictionary is converted to a list and sorted using a tuple `(total_points, first_places, ...)` as the key to handle tie-breaking correctly.
+
+### **5.3. Admin Security: Password Hashing**
+Passwords are never stored directly. A secure hash is created and stored instead.
+*   **Concept:** Information security, Hashing, Use of libraries.
+*   **Code Snippet:**
+    ```python
+    from werkzeug.security import generate_password_hash, check_password_hash
+
+    # Storing a new user's password
+    hashed_password = generate_password_hash(password, method='scrypt')
+    # ... INSERT into database ...
+
+    # Checking a password on login
+    if user and check_password_hash(user['password_hash'], password):
+        # ... login successful ...
+    ```
+
+### **5.4. Data Integrity: Preventing Orphaned Records**
+The application ensures that a school with existing results cannot be deleted.
+*   **Concept:** Database Integrity, Relational Logic.
+*   **Explanation:** Before deleting a school, the `delete_school()` function runs a `SELECT` query to check if the school's name appears in the `Results` table. If it does, the deletion is blocked and an error message is shown. This prevents a situation where a result refers to a school that no longer exists.
+
+### **5.5. File Handling: CSV Export**
+This feature demonstrates writing data to a file and serving it over the web.
+*   **Concept:** File Handling (`io`, `csv` modules).
+*   **Code Snippet:**
+    ```python
+    import io
+    import csv
+
+    @app.route('/export_leaderboard_csv')
+    def export_leaderboard_csv():
+        # ... get standings data ...
+        string_io = io.StringIO() # Create an in-memory text file
+        writer = csv.writer(string_io)
+        writer.writerow(['Rank', 'School', 'Total Points', ...]) # Write header
+        for school in standings:
+            writer.writerow([...]) # Write data rows
+
+        # ... code to create and return the file response ...
+    ```
+---
+<div style="page-break-after: always;"></div>
+
+# **6. Testing and Validation**
+
+The application was tested manually to ensure all features work correctly and handle errors gracefully.
+
+| Test Case ID | Test Description | Expected Result | Actual Result | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| TC-01 | Access the main leaderboard page (`/`). | The page loads and displays the table of schools from sample data. | The page loaded and displayed the table correctly. | Pass |
+| TC-02 | Attempt to log in with incorrect credentials. | An error message "Wrong username or password" is displayed. | The error message was displayed correctly. | Pass |
+| TC-03 | Log in with correct credentials (`admin`/`password`). | Redirected to the Admin Dashboard successfully. | The user was redirected successfully. | Pass |
+| TC-04 | Submit a result for a pending event. | The event moves from "Pending" to "Submitted". | The functionality worked as expected. | Pass |
+| TC-05 | Attempt to delete a school with existing results. | Deletion is blocked and an error message is displayed. | The error message was displayed correctly. | Pass |
+| TC-06 | Delete a school that has no results. | The school is removed from the list. | The school was removed successfully. | Pass |
+| TC-07 | Click the "Export as CSV" button. | A file `leaderboard.csv` is downloaded. | The file was downloaded and contained the correct data. | Pass |
+
+---
+<div style="page-break-after: always;"></div>
+
+# **7. Output Screens**
+
+**(This section is to be filled with high-resolution, annotated screenshots from the running application.)**
+
+**[Screenshot 1: The Main Leaderboard Page]**
+*Caption: The public-facing leaderboard, showing schools ranked by total points. The top 3 ranks are highlighted with special colors. (Annotate: Point to a highlighted row).*
+
+**[Screenshot 2: The Admin Dashboard]**
+*Caption: The main admin control panel, showing forms to submit results and manage schools. (Annotate: Circle the "Submit Result" form and the "Manage Schools" table).*
+
+**[Screenshot 3: Database View Before Submitting a Result]**
+*Caption: A view of the `Results` table in "DB Browser for SQLite" before a new result is added. Note the existing rows.*
+
+**[Screenshot 4: Database View After Submitting a Result]**
+*Caption: The `Results` table after submitting a new result. Note the newly added row, demonstrating a successful `INSERT` operation. (Annotate: Draw an arrow to the new row).*
+
+---
+<div style="page-break-after: always;"></div>
+
+# **8. Future Enhancements**
+
+This project provides a solid foundation that can be extended with more advanced features. The following are potential areas for future development:
+*   **Multi-User Roles:** Implement a more complex user system with different roles (e.g., 'Judges', 'Event Coordinators') who have different permissions.
+*   **Historical Data:** Add functionality to archive and view results from previous years or competitions.
+*   **Data Visualization:** Integrate a charting library to create visual representations of the data, such as a bar chart of the top 5 schools.
+*   **Real-time Updates:** Use technologies like WebSockets or AJAX to update the leaderboard live on the user's screen without requiring a page refresh.
+
+---
+<div style="page-break-after: always;"></div>
+
+# **9. Conclusion**
+
+This project successfully achieved its objective of creating a functional, database-driven web application for managing competition results. It serves as a comprehensive, practical demonstration of the key programming and data management skills outlined in the CBSE Class XII Computer Science syllabus.
+
+The development process involved designing a logical database schema, writing backend code in Python with the Flask framework to manipulate and serve data, and creating a simple but effective user interface with HTML/CSS. Key concepts like data integrity, secure password handling, and file I/O were successfully implemented and documented. The final application is robust, easy to use, and provides a clear solution to the problem of manual score-keeping.
+
+---
+<div style="page-break-after: always;"></div>
+
+# **10. Bibliography**
+
+1.  Arora, Sumita. *Computer Science with Python*. Dhanpat Rai & Co.
+2.  NCERT. *Computer Science - Class XII*.
+3.  The Pallets Projects. *Flask Documentation*. Retrieved from https://flask.palletsprojects.com/
+4.  The Python Software Foundation. *Python 3 Documentation*. Retrieved from https://docs.python.org/3/
+5.  *SQLite Documentation*. Retrieved from https://www.sqlite.org/docs.html
+
+---
+<div style="page-break-after: always;"></div>
+
+# **11. Appendix A: Full Source Code (`app.py`)**
 
 ```python
 import sqlite3
@@ -351,56 +552,58 @@ def school_details(school_name):
     This demonstrates fetching and displaying filtered data for a specific entity.
     """
     conn = get_db_connection()
+    try:
+        # Get the school's rank by processing the full leaderboard
+        standings_raw = get_school_standings(conn)
+        current_rank = "N/A"
+        total_points = 0
 
-    # Get the school's rank by processing the full leaderboard
-    standings_raw = get_school_standings(conn)
-    current_rank = "N/A"
-    total_points = 0
+        # This logic correctly calculates ranks, including handling for ties
+        rank_counter = 0
+        last_score = (-1, -1, -1, -1)
+        for i, school in enumerate(standings_raw):
+            current_score = (school['total_points'], school['first_places'], school['second_places'], school['third_places'])
+            if current_score != last_score:
+                rank_counter = i + 1
 
-    # This logic correctly calculates ranks, including handling for ties
-    rank_counter = 0
-    last_score = (-1, -1, -1, -1)
-    for i, school in enumerate(standings_raw):
-        current_score = (school['total_points'], school['first_places'], school['second_places'], school['third_places'])
-        if current_score != last_score:
-            rank_counter = i + 1
+            if school['school'] == school_name:
+                current_rank = rank_counter
+                total_points = school['total_points']
+                break
 
-        if school['school'] == school_name:
-            current_rank = rank_counter
-            total_points = school['total_points']
-            # We can break here since we found our school
-            break
+            last_score = current_score
 
-        last_score = current_score
+        # Get all the positions the school has achieved.
+        positions_query = """
+            SELECT e.name AS event_name,
+                   CASE
+                       WHEN r.first_place_school = ? THEN '1st Place'
+                       WHEN r.second_place_school = ? THEN '2nd Place'
+                       WHEN r.third_place_school = ? THEN '3rd Place'
+                   END AS position
+            FROM Results r JOIN Events e ON r.event_id = e.id
+            WHERE r.first_place_school = ? OR r.second_place_school = ? OR r.third_place_school = ?
+            ORDER BY e.name;
+        """
+        positions = conn.execute(positions_query, (school_name, school_name, school_name, school_name, school_name, school_name)).fetchall()
 
-    # Get all the positions the school has achieved.
-    positions_query = """
-        SELECT e.name AS event_name,
-               CASE
-                   WHEN r.first_place_school = ? THEN '1st Place'
-                   WHEN r.second_place_school = ? THEN '2nd Place'
-                   WHEN r.third_place_school = ? THEN '3rd Place'
-               END AS position
-        FROM Results r JOIN Events e ON r.event_id = e.id
-        WHERE r.first_place_school = ? OR r.second_place_school = ? OR r.third_place_school = ?
-        ORDER BY e.name;
-    """
-    positions = conn.execute(positions_query, (school_name, school_name, school_name, school_name, school_name, school_name)).fetchall()
+        # Create a summary of 1st, 2nd, 3rd places
+        summary = {'1st Place': 0, '2nd Place': 0, '3rd Place': 0}
+        for pos in positions:
+            if pos['position'] in summary:
+                summary[pos['position']] += 1
 
-    # Create a summary of 1st, 2nd, 3rd places
-    summary = {'1st Place': 0, '2nd Place': 0, '3rd Place': 0}
-    for pos in positions:
-        if pos['position'] in summary:
-            summary[pos['position']] += 1
-
-    conn.close()
-
-    return render_template('school_details.html',
-                           school_name=school_name,
-                           results=positions,
-                           summary=summary,
-                           total_points=total_points,
-                           rank=current_rank)
+        return render_template('school_details.html',
+                               school_name=school_name,
+                               results=positions,
+                               summary=summary,
+                               total_points=total_points,
+                               rank=current_rank)
+    finally:
+        # This 'finally' block ensures the database connection is always closed,
+        # even if an error occurs in the 'try' block. This is good practice.
+        if conn:
+            conn.close()
 
 # -- ADMIN ROUTES --
 # These routes are for administrators to manage the application data.
@@ -693,47 +896,28 @@ if __name__ == '__main__':
 ```
 
 ---
+<div style="page-break-after: always;"></div>
 
-# **Output Screens**
+# **12. Appendix B: User Manual / Deployment Guide**
 
-**(This section is to be filled with screenshots from the running application.)**
+### **12.1. Installation**
+1.  **Prerequisites:** Ensure you have Python 3.10 or a newer version installed on your system.
+2.  **Download Source Code:** Download or clone the project repository to your local machine.
+3.  **Install Dependencies:** Open a terminal or command prompt, navigate to the project's root folder, and run the following command to install the necessary Python libraries:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-### **Application UI Screenshots**
+### **12.2. First-Time Execution**
+The first time you run the application, it will automatically create and set up the database for you.
+1.  In your terminal, from the project's root folder, run the application:
+    ```bash
+    python app.py
+    ```
+2.  You will see messages in the terminal indicating that the database `podium.db` is being created and seeded with sample data. A default admin user (`username: admin`, `password: password`) will also be created.
+3.  The Flask development server will start, typically on `http://127.0.0.1:5001`.
 
-**[Screenshot 1: The Main Leaderboard Page]**
-*Caption: The public-facing leaderboard, showing schools ranked by total points. The top 3 ranks are highlighted with special colors.*
-
-**[Screenshot 2: The School Details Page]**
-*Caption: The detailed view for a single school, showing its current rank, total points, and performance in each event.*
-
-**[Screenshot 3: The Admin Login Page]**
-*Caption: The secure login portal for the site administrator.*
-
-**[Screenshot 4: The Admin Dashboard]**
-*Caption: The main admin control panel, showing forms to submit results for pending events and to add or delete schools.*
-
-**[Screenshot 5: The Exported CSV File]**
-*Caption: The `leaderboard.csv` file opened in a spreadsheet application, showing the exported data.*
-
-### **Database Interaction Screenshots**
-
-**[Screenshot 6: Database View Before Submitting a Result]**
-*Caption: A view of the `Results` table in "DB Browser for SQLite" before a new result is added. Note the existing rows.*
-
-**[Screenshot 7: Database View After Submitting a Result]**
-*Caption: The `Results` table after submitting a new result through the web application. Note the newly added row at the bottom, demonstrating a successful `INSERT` operation.*
-
-**[Screenshot 8: Database View Before Editing a Result]**
-*Caption: The `Results` table showing a specific row before an edit is made.*
-
-**[Screenshot 9: Database View After Editing a Result]**
-*Caption: The same row in the `Results` table after being modified via the "Edit" function in the application, demonstrating a successful `UPDATE` operation.*
-
----
-
-# **Bibliography**
-
-1.  Arora, Sumita. *Computer Science with Python*. Dhanpat Rai & Co.
-2.  NCERT. *Computer Science - Class XII*.
-3.  The Pallets Projects. *Flask Documentation*. Retrieved from https://flask.palletsprojects.com/
-4.  The Python Software Foundation. *Python 3 Documentation*. Retrieved from https://docs.python.org/3/
+### **12.3. Using the Application**
+1.  **View Leaderboard:** Open a web browser and go to `http://127.0.0.1:5001` to see the public leaderboard.
+2.  **Admin Login:** Click the "Admin Login" button and use the default credentials to access the admin dashboard.
+3.  **Manage Data:** From the dashboard, you can submit new results, edit existing ones, and manage the list of participating schools.
