@@ -123,7 +123,7 @@ I would also like to thank my parents and friends who supported me throughout th
 | `submit_result()` | Flask route that processes the form for submitting a new event result. |
 | `edit_result()` | Flask route to display and process the form for editing an existing result. |
 | `add_school()` | Flask route that processes the form for adding a new school. |
-| `delete_school()` | Flask route that processes the action to delete a school. |
+| `delete_school()` | Processes the school deletion. Includes a data integrity check to prevent deleting a school that has existing results. |
 | `export_leaderboard_csv()`| Flask route that generates and serves the leaderboard as a downloadable CSV file. |
 
 ---

@@ -62,6 +62,9 @@ Here is a simple breakdown of each important file and what to say about it.
 **Q8: Can you explain how you calculate the leaderboard scores?**
 *   **Answer:** "We simplified the scoring system to make it easy to understand. The points are now fixed: 100 for 1st place, 75 for 2nd, and 50 for 3rd for all events. To calculate the leaderboard, our Python code fetches all the results from the `Results` table. It then uses a dictionary to loop through these results, adding the fixed points for each 1st, 2nd, or 3rd place finish to the school's total score. Finally, we sort this data by total points to get the final ranks."
 
+**Q9: How does your project ensure data integrity?**
+*   **Answer:** "We implemented a key data integrity check in the 'delete school' feature. Before the program deletes a school, it first runs a `SELECT` query on the `Results` table to check if that school has participated in any events. If the school's name exists in any of the results, the deletion is blocked, and a message is shown to the admin. This prevents 'orphaned' records in our `Results` table, where a result would point to a school that no longer exists, thus ensuring the integrity of our database."
+
 ## 3. In-Class Demo Script
 
 Here is a simple script you can follow to demonstrate the project to your teacher.
